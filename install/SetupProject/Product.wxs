@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <?include $(sys.CURRENTDIR)Definitions.wxi ?>
+
+	<Product Id="FF308CCA-06D6-4604-8FA6-9CEF87BD70CC" Name="WiX Experiment" Language="1033" Version="1.0.0.0"
+           Manufacturer="No one, it's software" UpgradeCode="32bef88c-06b5-4c06-a0b3-ea191441a71f">
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of WiX Experiment is already installed." />
+		<MediaTemplate EmbedCab="yes" />
+
+		<Feature Id="ProductFeature" Title="SetupProject" Level="1">
+			<ComponentGroupRef Id="ProductComponents" />
+      <Feature Id="_Product_Feature_12_3245" Title="OptionalPlugin" Level="1">
+        <ComponentGroupRef Id="OptionalPluginComponents"/>
+      </Feature>
+		</Feature>
+	</Product>
+
+  <Fragment>
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="WixExperiment">
+          <Directory Id="PluginsFolder" Name="Plugins"/>
+        </Directory>
+      </Directory>
+
+      <Directory Id="ProgramMenuFolder" Name="Programs">
+        <Directory Id="ProgramMenuDir" Name="WiX Experiment"/>
+      </Directory>
+
+      <Directory Id="DesktopFolder" Name="Desktop"/>
+    </Directory>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+      <Component Id="MainExecutable">
+        <File Id="_Product_File_37_4144" Name="WixExperimentApp.exe" Source="$(var.WixExperimentApp.TargetDir)WixExperimentApp.exe" KeyPath="yes">
+          <Shortcut Id="_Product_Shortcut_32_3120" Directory="ProgramMenuDir" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
+          <Shortcut Id="_Product_Shortcut_33_3130" Directory="DesktopFolder" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
+        </File>
+        <RemoveFolder Id="_Product_RemoveFolder_35_3145" Directory="INSTALLFOLDER" On="uninstall"/>
+        <RemoveFolder Id="_Product_RemoveFolder_44_2437" Directory="ProgramMenuDir" On="uninstall"/>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+  <Fragment>
+    <ComponentGroup Id="OptionalPluginComponents" Directory="PluginsFolder">
+      <Component Id="_Product_Component_42_3210">
+        <File Id="_Product_File_43_3215" Name="OptionalPlugin.dll" Source="$(var.OptionalPlugin.TargetDir)OptionalPlugin.dll" KeyPath="yes">
+        </File>
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+</Wix>
