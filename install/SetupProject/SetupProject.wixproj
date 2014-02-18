@@ -46,12 +46,18 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Definitions.wxi" />
+    <Content Include="Images\WixUIBannerBmp.bmp" />
+    <Content Include="Images\WixUIDialogBmp.bmp" />
+    <Content Include="License.rtf" />
   </ItemGroup>
   <ItemGroup>
     <WixExtension Include="WixUIExtension">
       <HintPath>$(WixExtDir)\WixUIExtension.dll</HintPath>
       <Name>WixUIExtension</Name>
     </WixExtension>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Images" />
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
   <!--

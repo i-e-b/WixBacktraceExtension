@@ -11,16 +11,21 @@
 
     <Feature Id="Complete" Title="WiX Experiment package" Description="A WiX installer experiment - the complete package" Display="expand" Level="1" ConfigurableDirectory="INSTALLFOLDER">
 
-      <Feature Id="MainProgram" Title="SetupProject" Description="The experiment command line tool" Level="1">
+      <Feature Id="MainProgram" Title="SetupProject" Description="The experiment command line tool" Level="1"
+               Absent="disallow" AllowAdvertise="no" InstallDefault="followParent">
         <ComponentGroupRef Id="ProductComponents" />
       </Feature>
 
-      <Feature Id="_Product_Feature_12_3245" Title="OptionalPlugin" Description="An optional plugin that adds more greetings" Level="1000">
+      <Feature Id="_Product_Feature_12_3245" Title="OptionalPlugin" Description="An optional plugin that adds more greetings" Level="1000"
+               Absent="allow" AllowAdvertise="no" InstallDefault="followParent">
         <ComponentGroupRef Id="OptionalPluginComponents"/>
       </Feature>
     </Feature>
 
-    <UIRef Id="WixUI_Mondo" />
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+    <WixVariable Id="WixUIBannerBmp" Value="Images\WixUIBannerBmp.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="Images\WixUIDialogBmp.bmp" />
+    <UIRef Id="WixUI_FeatureTree" /> <!-- WixUI_Mondo gives the Typical/Custom/Full options. WixUI_FeatureTree skips this step -->
     <UIRef Id="WixUI_ErrorProgressText" />
   </Product>
 
