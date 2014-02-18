@@ -16,11 +16,12 @@
 
         static Program Compose()
         {
-            if (!Directory.Exists("./Plugins"))Directory.CreateDirectory("./Plugins");
+            var plugDir = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? ".", "Plugins");
+            if (!Directory.Exists(plugDir)) Directory.CreateDirectory(plugDir);
 
             using (var catalog = new AggregateCatalog(
                 new AssemblyCatalog(Assembly.GetExecutingAssembly()),
-                new DirectoryCatalog("./Plugins")
+                new DirectoryCatalog(plugDir)
                 ))
             {
 

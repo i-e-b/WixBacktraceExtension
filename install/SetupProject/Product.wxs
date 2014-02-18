@@ -9,13 +9,20 @@
 		<MajorUpgrade DowngradeErrorMessage="A newer version of WiX Experiment is already installed." />
 		<MediaTemplate EmbedCab="yes" />
 
-		<Feature Id="ProductFeature" Title="SetupProject" Level="1">
-			<ComponentGroupRef Id="ProductComponents" />
-      <Feature Id="_Product_Feature_12_3245" Title="OptionalPlugin" Level="1">
+    <Feature Id="Complete" Title="WiX Experiment package" Description="A WiX installer experiment - the complete package" Display="expand" Level="1" ConfigurableDirectory="INSTALLFOLDER">
+
+      <Feature Id="MainProgram" Title="SetupProject" Description="The experiment command line tool" Level="1">
+        <ComponentGroupRef Id="ProductComponents" />
+      </Feature>
+
+      <Feature Id="_Product_Feature_12_3245" Title="OptionalPlugin" Description="An optional plugin that adds more greetings" Level="1000">
         <ComponentGroupRef Id="OptionalPluginComponents"/>
       </Feature>
-		</Feature>
-	</Product>
+    </Feature>
+
+    <UIRef Id="WixUI_Mondo" />
+    <UIRef Id="WixUI_ErrorProgressText" />
+  </Product>
 
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
