@@ -6,6 +6,7 @@
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Reflection;
+    using ThirdParty;
 
     class Program
     {
@@ -40,6 +41,7 @@
         void Run()
         {
             Console.WriteLine("Hello from the core program!");
+            Console.WriteLine("Installed at " + (new UltraImportant3rdPartyClass().WhereIAm()));
             foreach (var plugin in Plugins)
             {
                 Console.WriteLine(plugin.Greeting());

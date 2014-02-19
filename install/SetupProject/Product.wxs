@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <?include $(sys.CURRENTDIR)Definitions.wxi ?>
 
-	<Product Id="FF308CCA-06D6-4604-8FA6-9CEF87BD70CC" Name="WiX Experiment" Language="1033" Version="1.0.0.0"
-           Manufacturer="No one, it's software" UpgradeCode="32bef88c-06b5-4c06-a0b3-ea191441a71f">
+	<Product Id="FF308CCA-06D6-4604-8FA6-9CEF87BD70CC" Name="WiX Experiment" Language="1033" Version="1.0.0.0" Manufacturer="No one, it's software" UpgradeCode="32bef88c-06b5-4c06-a0b3-ea191441a71f">
 		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
 		<MajorUpgrade DowngradeErrorMessage="A newer version of WiX Experiment is already installed." />
@@ -21,6 +20,12 @@
         <ComponentGroupRef Id="OptionalPluginComponents"/>
       </Feature>
     </Feature>
+
+    <CustomAction Id='LaunchFile' FileKey='_Product_File_37_4144' ExeCommand='' Return='asyncNoWait' />
+
+    <InstallExecuteSequence>
+      <Custom Action="LaunchFile" After="InstallFinalize">NOT Installed</Custom>
+    </InstallExecuteSequence>
 
     <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
     <WixVariable Id="WixUIBannerBmp" Value="Images\WixUIBannerBmp.bmp" />
@@ -48,10 +53,14 @@
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
       <Component Id="MainExecutable">
-        <File Id="_Product_File_37_4144" Name="WixExperimentApp.exe" Source="$(var.WixExperimentApp.TargetDir)WixExperimentApp.exe" KeyPath="yes">
+        <File Id="_Product_File_37_4144" Name="WixExperimentApp.exe" Source="$(var.WixExperimentApp.TargetDir)WixExperimentApp.exe" KeyPath="yes" BindPath="">
           <Shortcut Id="_Product_Shortcut_32_3120" Directory="ProgramMenuDir" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
           <Shortcut Id="_Product_Shortcut_33_3130" Directory="DesktopFolder" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
+          
         </File>
+      <!--  <?foreach testvalue in abc;def;hij?>
+            <File Id="$(var.testvalue)" Name="$(var.testvalue)" Source="$(var.testvalue)"/>
+        <?endforeach?> -->
         <RemoveFolder Id="_Product_RemoveFolder_35_3145" Directory="INSTALLFOLDER" On="uninstall"/>
         <RemoveFolder Id="_Product_RemoveFolder_44_2437" Directory="ProgramMenuDir" On="uninstall"/>
       </Component>
