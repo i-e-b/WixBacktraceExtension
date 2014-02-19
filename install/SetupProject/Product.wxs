@@ -52,15 +52,15 @@
 
   <Fragment>
     <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-      <Component Id="MainExecutable">
-        <File Id="_Product_File_37_4144" Name="WixExperimentApp.exe" Source="$(var.WixExperimentApp.TargetDir)WixExperimentApp.exe" KeyPath="yes" BindPath="">
+      <Component Id="MainExecutable" Guid="322E3544-6E73-4C27-B5E2-317A34F218A8">
+        <File Id="_Product_File_37_4144" Name="WixExperimentApp.exe" Source="$(var.WixExperimentApp.TargetDir)WixExperimentApp.exe" KeyPath="yes">
           <Shortcut Id="_Product_Shortcut_32_3120" Directory="ProgramMenuDir" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
           <Shortcut Id="_Product_Shortcut_33_3130" Directory="DesktopFolder" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
           
         </File>
-      <!--  <?foreach testvalue in abc;def;hij?>
-            <File Id="$(var.testvalue)" Name="$(var.testvalue)" Source="$(var.testvalue)"/>
-        <?endforeach?> -->
+        <?foreach dependency in $(backtrace.dependenciesOf($(var.WixExperimentApp.TargetDir)WixExperimentApp.exe))?>
+            <File Id="_$(backtrace.id())" Source="$(var.dependency)"/>
+        <?endforeach?>
         <RemoveFolder Id="_Product_RemoveFolder_35_3145" Directory="INSTALLFOLDER" On="uninstall"/>
         <RemoveFolder Id="_Product_RemoveFolder_44_2437" Directory="ProgramMenuDir" On="uninstall"/>
       </Component>

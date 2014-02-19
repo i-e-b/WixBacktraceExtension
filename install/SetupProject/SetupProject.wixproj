@@ -49,11 +49,16 @@
     <Content Include="Images\WixUIBannerBmp.bmp" />
     <Content Include="Images\WixUIDialogBmp.bmp" />
     <Content Include="License.rtf" />
+    <Content Include="Readme.md" />
   </ItemGroup>
   <ItemGroup>
     <WixExtension Include="WixUIExtension">
       <HintPath>$(WixExtDir)\WixUIExtension.dll</HintPath>
       <Name>WixUIExtension</Name>
+    </WixExtension>
+    <WixExtension Include="WixBacktraceExtension">
+      <HintPath>..\WixBacktraceExtension\bin\Debug\WixBacktraceExtension.dll</HintPath>
+      <Name>WixBacktraceExtension</Name>
     </WixExtension>
   </ItemGroup>
   <ItemGroup>
