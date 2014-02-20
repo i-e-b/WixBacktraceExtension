@@ -1,4 +1,4 @@
-﻿namespace WixExperimentApp
+﻿namespace PluginContract
 {
     public interface IPluginContract
     {

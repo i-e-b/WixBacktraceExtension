@@ -1,77 +1,86 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi" xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
-  <?include $(sys.CURRENTDIR)Definitions.wxi ?>
+    <?include $(sys.CURRENTDIR)Definitions.wxi ?>
 
-	<Product Id="FF308CCA-06D6-4604-8FA6-9CEF87BD70CC" Name="WiX Experiment" Language="1033" Version="1.0.0.0" Manufacturer="No one, it's software" UpgradeCode="32bef88c-06b5-4c06-a0b3-ea191441a71f">
-		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+    <Product Id="FF308CCA-06D6-4604-8FA6-9CEF87BD70CC" Name="WiX Experiment" Language="1033" Version="1.0.0.0" Manufacturer="No one, it's software" UpgradeCode="32bef88c-06b5-4c06-a0b3-ea191441a71f">
+        <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
-		<MajorUpgrade DowngradeErrorMessage="A newer version of WiX Experiment is already installed." />
-		<MediaTemplate EmbedCab="yes" />
+        <MajorUpgrade DowngradeErrorMessage="A newer version of WiX Experiment is already installed." />
+        <MediaTemplate EmbedCab="yes" />
 
-    <Feature Id="Complete" Title="WiX Experiment package" Description="A WiX installer experiment - the complete package" Display="expand" Level="1" ConfigurableDirectory="INSTALLFOLDER">
+        <Feature Id="Complete" Title="WiX Experiment package" Description="A WiX installer experiment - the complete package" Display="expand" Level="1" ConfigurableDirectory="INSTALLFOLDER">
 
-      <Feature Id="MainProgram" Title="SetupProject" Description="The experiment command line tool" Level="1"
-               Absent="disallow" AllowAdvertise="no" InstallDefault="followParent">
-        <ComponentGroupRef Id="ProductComponents" />
-      </Feature>
+            <Feature Id="MainProgram" Title="SetupProject" Description="The experiment command line tool" Level="1"
+                     Absent="disallow" AllowAdvertise="no" InstallDefault="followParent">
+                <ComponentGroupRef Id="ProductComponents" />
+            </Feature>
 
-      <Feature Id="_Product_Feature_12_3245" Title="OptionalPlugin" Description="An optional plugin that adds more greetings" Level="1000"
-               Absent="allow" AllowAdvertise="no" InstallDefault="followParent">
-        <ComponentGroupRef Id="OptionalPluginComponents"/>
-      </Feature>
-    </Feature>
+            <Feature Id="_Product_Feature_12_3245" Title="OptionalPlugin" Description="An optional plugin that adds more greetings" Level="1000"
+                     Absent="allow" AllowAdvertise="no" InstallDefault="followParent">
+                <ComponentGroupRef Id="OptionalPluginComponents"/>
+            </Feature>
+        </Feature>
 
-    <CustomAction Id='LaunchFile' FileKey='_Product_File_37_4144' ExeCommand='' Return='asyncNoWait' />
+        <CustomAction Id='LaunchFile' FileKey='_Product_File_37_4144' ExeCommand='' Return='asyncNoWait' />
 
-    <InstallExecuteSequence>
-      <Custom Action="LaunchFile" After="InstallFinalize">NOT Installed</Custom>
-    </InstallExecuteSequence>
+        <InstallExecuteSequence>
+            <Custom Action="LaunchFile" After="InstallFinalize">NOT Installed</Custom>
+        </InstallExecuteSequence>
 
-    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
-    <WixVariable Id="WixUIBannerBmp" Value="Images\WixUIBannerBmp.bmp" />
-    <WixVariable Id="WixUIDialogBmp" Value="Images\WixUIDialogBmp.bmp" />
-    <UIRef Id="WixUI_FeatureTree" /> <!-- WixUI_Mondo gives the Typical/Custom/Full options. WixUI_FeatureTree skips this step -->
-    <UIRef Id="WixUI_ErrorProgressText" />
-  </Product>
+        <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+        <WixVariable Id="WixUIBannerBmp" Value="Images\WixUIBannerBmp.bmp" />
+        <WixVariable Id="WixUIDialogBmp" Value="Images\WixUIDialogBmp.bmp" />
+        <UIRef Id="WixUI_FeatureTree" />
+        <!-- WixUI_Mondo gives the Typical/Custom/Full options. WixUI_FeatureTree skips this step -->
+        <UIRef Id="WixUI_ErrorProgressText" />
+    </Product>
 
-  <Fragment>
-    <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="ProgramFilesFolder">
-        <Directory Id="INSTALLFOLDER" Name="WixExperiment">
-          <Directory Id="PluginsFolder" Name="Plugins"/>
+    <Fragment>
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFilesFolder">
+                <Directory Id="INSTALLFOLDER" Name="WixExperiment">
+                    <Directory Id="PluginsFolder" Name="Plugins"/>
+                </Directory>
+            </Directory>
+
+            <Directory Id="ProgramMenuFolder" Name="Programs">
+                <Directory Id="ProgramMenuDir" Name="WiX Experiment"/>
+            </Directory>
+
+            <Directory Id="DesktopFolder" Name="Desktop"/>
         </Directory>
-      </Directory>
+    </Fragment>
 
-      <Directory Id="ProgramMenuFolder" Name="Programs">
-        <Directory Id="ProgramMenuDir" Name="WiX Experiment"/>
-      </Directory>
+    <Fragment>
+        <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+            <Component Id="MainExecutable"> <!-- Component for the principal build output -->
+                <File Id="_Product_File_37_4144" Name="WixExperimentApp.exe" Source="$(var.App)" KeyPath="yes">
+                    <Shortcut Id="_Product_Shortcut_32_3120" Directory="ProgramMenuDir" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
+                    <Shortcut Id="_Product_Shortcut_33_3130" Directory="DesktopFolder" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
+                </File>
+                <RemoveFolder Id="_Product_RemoveFolder_35_3145" Directory="INSTALLFOLDER" On="uninstall"/>
+                <RemoveFolder Id="_Product_RemoveFolder_44_2437" Directory="ProgramMenuDir" On="uninstall"/>
+            </Component>
 
-      <Directory Id="DesktopFolder" Name="Desktop"/>
-    </Directory>
-  </Fragment>
+            <?foreach dependency in $(var.AppDepends)?> <!-- A separate component for every DLL referenced by the app -->
+                <Component Id="MainExecutable_$(backtrace.id())">
+                    <File Id="_$(backtrace.id())" Source="$(var.dependency)"/>
+                </Component>
+            <?endforeach?>
+        </ComponentGroup>
+    </Fragment>
 
-  <Fragment>
-    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-      <Component Id="MainExecutable" Guid="322E3544-6E73-4C27-B5E2-317A34F218A8">
-        <File Id="_Product_File_37_4144" Name="WixExperimentApp.exe" Source="$(var.WixExperimentApp.TargetDir)WixExperimentApp.exe" KeyPath="yes">
-          <Shortcut Id="_Product_Shortcut_32_3120" Directory="ProgramMenuDir" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
-          <Shortcut Id="_Product_Shortcut_33_3130" Directory="DesktopFolder" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
-        </File>
-        <?foreach dependency in $(backtrace.dependenciesOf($(var.WixExperimentApp.TargetDir)WixExperimentApp.exe))?>
-            <File Id="_$(backtrace.id())" Source="$(var.dependency)"/>
-        <?endforeach?>
-        <RemoveFolder Id="_Product_RemoveFolder_35_3145" Directory="INSTALLFOLDER" On="uninstall"/>
-        <RemoveFolder Id="_Product_RemoveFolder_44_2437" Directory="ProgramMenuDir" On="uninstall"/>
-      </Component>
-    </ComponentGroup>
-  </Fragment>
+    <Fragment>
+        <ComponentGroup Id="OptionalPluginComponents" Directory="PluginsFolder">
+            <Component Id="_Product_Component_42_3210">
+                <File Id="_Product_File_43_3215" Name="OptionalPlugin.dll" Source="$(var.Plugin)" KeyPath="yes"/>
+            </Component>
 
-  <Fragment>
-    <ComponentGroup Id="OptionalPluginComponents" Directory="PluginsFolder">
-      <Component Id="_Product_Component_42_3210">
-        <File Id="_Product_File_43_3215" Name="OptionalPlugin.dll" Source="$(var.OptionalPlugin.TargetDir)OptionalPlugin.dll" KeyPath="yes">
-        </File>
-      </Component>
-    </ComponentGroup>
-  </Fragment>
+            <?foreach dependency in $(var.PluginDepends)?> <!-- A separate component for every DLL referenced by the app -->
+                <Component Id="MainExecutable_$(backtrace.id())">
+                    <File Id="_$(backtrace.id())" Source="$(var.dependency)"/>
+                </Component>
+            <?endforeach?>
+        </ComponentGroup>
+    </Fragment>
 </Wix>

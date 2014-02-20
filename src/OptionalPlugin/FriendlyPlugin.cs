@@ -1,7 +1,7 @@
 ﻿namespace OptionalPlugin
 {
     using System.ComponentModel.Composition;
-    using WixExperimentApp;
+    using PluginContract;
 
     [Export(typeof(IPluginContract))]
     public class FriendlyPlugin : IPluginContract

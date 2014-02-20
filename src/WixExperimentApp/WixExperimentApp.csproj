@@ -37,7 +37,6 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IPluginContract.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -45,6 +44,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\PluginContract\PluginContract.csproj">
+      <Project>{43F2BD55-8C8A-4F5D-9A33-BDC93BEBC029}</Project>
+      <Name>PluginContract</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ThirdParty\ThirdParty.csproj">
       <Project>{30ccb0f5-e1d3-436b-8b64-e3339978c8ae}</Project>
       <Name>ThirdParty</Name>

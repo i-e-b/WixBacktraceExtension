@@ -6,6 +6,7 @@
     using System.ComponentModel.Composition.Hosting;
     using System.IO;
     using System.Reflection;
+    using PluginContract;
     using ThirdParty;
 
     class Program

@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Include>
- <!-- <?define ExperimentApp.TargetPath="..\..\..\Tribold\Installers\Binaries\$(var.Platform)\Tribold.Installer.Actions.CA.dll" ?> -->
+    <!-- <?define ExperimentApp.TargetPath="..\..\..\Tribold\Installers\Binaries\$(var.Platform)\Tribold.Installer.Actions.CA.dll" ?> -->
+    <?define App="$(var.WixExperimentApp.TargetPath)" ?>
+    <?define AppDepends="$(backtrace.dependenciesOf($(var.WixExperimentApp.TargetPath)))" ?>
+
+    <?define Plugin="$(var.OptionalPlugin.TargetPath)" ?>
+    <?define PluginDepends="$(backtrace.dependenciesOf($(var.OptionalPlugin.TargetPath)))" ?>
 </Include>
