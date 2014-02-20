@@ -49,7 +49,6 @@
     <Content Include="Images\WixUIBannerBmp.bmp" />
     <Content Include="Images\WixUIDialogBmp.bmp" />
     <Content Include="License.rtf" />
-    <Content Include="Readme.md" />
   </ItemGroup>
   <ItemGroup>
     <WixExtension Include="WixUIExtension">

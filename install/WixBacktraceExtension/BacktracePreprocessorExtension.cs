@@ -39,10 +39,10 @@
 
         static string GetSafeName(IList<string> args)
         {
-            if (args.Count != 1) return Guid.NewGuid().ToString("N"); //throw new Exception("No path supplied to $(backtrace.nameOf(...))");
+            if (args.Count != 1) return Guid.NewGuid().ToString("N");
 
             var fileName = Path.GetFileNameWithoutExtension(args[0]);
-            if (string.IsNullOrWhiteSpace(fileName)) return Guid.NewGuid().ToString("N"); //throw new Exception("Asked to get safe name for invalid path in $(backtrace.nameOf(...))");
+            if (string.IsNullOrWhiteSpace(fileName)) return Guid.NewGuid().ToString("N");
 
             return fileName;
         }

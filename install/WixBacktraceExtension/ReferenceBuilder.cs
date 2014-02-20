@@ -39,7 +39,6 @@ namespace WixBacktraceExtension
         {
             try
             {
-                File.AppendAllText(@"C:\Temp\log", "\r\nLooking for " + dep.FullName + ", maybe " + dep.CodeBase + " or near " + src.Location);
                 Assembly real;
                 try
                 {
@@ -52,21 +51,17 @@ namespace WixBacktraceExtension
                 var location = real.Location;
                 if (real.GlobalAssemblyCache)
                 {
-                    File.AppendAllText(@"C:\Temp\log", "ignored.");
                     return null;
                 }
                 if (string.IsNullOrEmpty(location))
                 {
-                    File.AppendAllText(@"C:\Temp\log", "not found.");
                     return null;
                 }
 
-                File.AppendAllText(@"C:\Temp\log", "found.");
                 return real;
             }
-            catch (Exception ex)
+            catch
             {
-                File.AppendAllText(@"C:\Temp\log", "\r\n\tError: " + ex.GetType() + ": " + ex.Message + "\r\n\r\n" + ex.StackTrace);
                 return null;
             }
         }
@@ -77,8 +72,6 @@ namespace WixBacktraceExtension
             var directoryName = Path.GetDirectoryName(basePath) ?? basePath;
             var dll = Path.Combine(directoryName, guess + ".dll");
             var exe = Path.Combine(directoryName, guess + ".exe");
-
-            File.AppendAllText(@"C:\Temp\log", " guessing '"+dll+"' or '"+exe+"' ");
 
             if (File.Exists(dll))
             {
