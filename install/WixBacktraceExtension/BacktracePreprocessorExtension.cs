@@ -39,45 +39,24 @@
 
         static string GetSafeName(IList<string> args)
         {
-            if (args.Count != 1) throw new Exception("No path supplied to $(backtrace.nameOf(...))");
+            if (args.Count != 1) return Guid.NewGuid().ToString("N"); //throw new Exception("No path supplied to $(backtrace.nameOf(...))");
 
             var fileName = Path.GetFileNameWithoutExtension(args[0]);
-            if (string.IsNullOrWhiteSpace(fileName)) throw new Exception("Asked to get safe name for invalid path in $(backtrace.nameOf(...))");
+            if (string.IsNullOrWhiteSpace(fileName)) return Guid.NewGuid().ToString("N"); //throw new Exception("Asked to get safe name for invalid path in $(backtrace.nameOf(...))");
 
             return fileName;
         }
 
         static string GetDependencies(IList<string> args)
         {
-            var assm = GetReflectionAssembly(args);
+            if (args.Count != 1) return "-BAD ARGUMENTS-";
 
-            var builder = new ReferenceBuilder(assm);
+            var dependencies = new ReferenceBuilder(Assembly.LoadFrom(args[0])).NonGacDependencies().ToList();
 
-            var dependencies = builder.NonGacDependencies().ToList();
-
-            if (dependencies.Count < 1) return null;
+            if (dependencies.Count < 1) return "-NONE FOUND-";
 
             return string.Join(";", dependencies.Select(a => a.Location));
         }
 
-        static Assembly GetReflectionAssembly(IList<string> args)
-        {
-            Assembly assm;
-            try
-            {
-                if (args.Count != 1) throw new Exception();
-
-                var src = args[0];
-                if (!File.Exists(src)) throw new Exception();
-
-                assm = Assembly.ReflectionOnlyLoadFrom(src);
-                if (assm == null) throw new Exception();
-            }
-            catch
-            {
-                throw new ArgumentException("$(backtrace.dependenciesOf(...)) should be supplied with the file path of a single .Net assembly or .Net executable");
-            }
-            return assm;
-        }
     }
 }

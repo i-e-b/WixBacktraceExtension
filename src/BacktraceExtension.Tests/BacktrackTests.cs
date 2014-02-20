@@ -13,16 +13,27 @@
         [SetUp]
         public void setup()
         {
-            _subject = new ReferenceBuilder(Assembly.GetExecutingAssembly());
+            var assm = Assembly.ReflectionOnlyLoadFrom(@"C:\Projects\WixExperiment\src\WixExperimentApp\bin\Debug\WixExperimentApp.exe");
+            _subject = new ReferenceBuilder(assm);
         }
 
         [Test]
         public void should_get_assembly_references ()
         {
-            var result = _subject.NonGacDependencies().ToList();
+            var result = _subject.NonGacDependencies().Select(a=>ReferenceBuilder.GuessName(a.FullName)).ToList();
 
-            Assert.That(result, Is.Not.Empty);
+            Assert.That(result, Contains.Item("LessStupidPath"));
+            Assert.That(result, Contains.Item("ThirdParty"));
+            Assert.That(result, Is.Not.Contains("WixExperimentApp"));
         }
+
+        [Test]
+        public void can_get_dll_name()
+        {
+            var name = ReferenceBuilder.GuessName(Assembly.GetExecutingAssembly().FullName);
+            Assert.That(name, Is.EqualTo("BacktraceExtension.Tests"));
+        }
+
 
     }
 }
