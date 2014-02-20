@@ -56,7 +56,6 @@
         <File Id="_Product_File_37_4144" Name="WixExperimentApp.exe" Source="$(var.WixExperimentApp.TargetDir)WixExperimentApp.exe" KeyPath="yes">
           <Shortcut Id="_Product_Shortcut_32_3120" Directory="ProgramMenuDir" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
           <Shortcut Id="_Product_Shortcut_33_3130" Directory="DesktopFolder" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
-          
         </File>
         <?foreach dependency in $(backtrace.dependenciesOf($(var.WixExperimentApp.TargetDir)WixExperimentApp.exe))?>
             <File Id="_$(backtrace.id())" Source="$(var.dependency)"/>
