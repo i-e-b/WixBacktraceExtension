@@ -20,11 +20,11 @@
         [Test]
         public void should_get_assembly_references ()
         {
-            var result = _subject.NonGacDependencies().Select(a=>ReferenceBuilder.GuessName(a.FullName)).ToList();
+            var result = _subject.NonGacDependencies().Select(a=>ReferenceBuilder.GuessName(a.ToString())).ToList();
 
-            Assert.That(result, Contains.Item("LessStupidPath"));
-            Assert.That(result, Contains.Item("ThirdParty"));
-            Assert.That(result, Is.Not.Contains("WixExperimentApp"));
+            Assert.That(result, Contains.Item("LessStupidPath"), "Missing NuGet dependency");
+            Assert.That(result, Contains.Item("ThirdParty"), "Missing direct dependency");
+            Assert.That(result, Is.Not.Contains("WixExperimentApp"), "Returned original assembly, could lead to duplicates");
         }
 
         [Test]

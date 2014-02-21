@@ -1,6 +1,5 @@
 namespace WixBacktraceExtension
 {
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -15,22 +14,21 @@ namespace WixBacktraceExtension
             _assm = assm;
         }
 
-        public IEnumerable<Assembly> NonGacDependencies()
+        public IEnumerable<AssemblyKey> NonGacDependencies()
         {
-            return NonGacDependencies(_assm);
+            var result = new HashSet<Assembly>();
+            NonGacDependencies(_assm, result);
+            return result.Select(a=> new AssemblyKey(a));
         }
 
-        static IEnumerable<Assembly> NonGacDependencies(Assembly src)
+        static void NonGacDependencies(Assembly src, ISet<Assembly> dst)
         {
             foreach (var next in
                 src.GetReferencedAssemblies().Select(refd => NonGacAndReal(src, refd)).Where(assm => assm != null)
                 )
             {
-                yield return next;
-                foreach (var child in NonGacDependencies(next))
-                {
-                    yield return child;
-                }
+                dst.Add(next);
+                NonGacDependencies(next, dst);
             }
         }
 
