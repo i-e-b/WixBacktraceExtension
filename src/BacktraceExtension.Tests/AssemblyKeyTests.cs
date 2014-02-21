@@ -22,7 +22,7 @@
             const string keystring = @"BacktraceExtension.Tests, Version=1.0.0.0|C:\path\file.dll";
             const string expected = @"cmp_BacktraceExtension_Tests_1_0_0_0";
 
-            Assert.That(AssemblyKey.ComponentKey(keystring), Is.EqualTo(expected));
+            Assert.That(AssemblyKey.ComponentId(keystring), Is.EqualTo(expected));
         }
 
         [Test]
@@ -31,7 +31,7 @@
             const string keystring = @"BacktraceExtension.Tests, Version=1.0.0.0|C:\path\file.dll";
             const string expected = @"file_BacktraceExtension_Tests_1_0_0_0";
 
-            Assert.That(AssemblyKey.FileKey(keystring), Is.EqualTo(expected));
+            Assert.That(AssemblyKey.FileId(keystring), Is.EqualTo(expected));
         }
 
         [Test]

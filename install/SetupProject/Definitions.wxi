@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Include>
+    <!-- Principal outputs for the projects -->
     <?define App="$(var.WixExperimentApp.TargetPath)" ?>
-    <?define AppDepends="$(get.dependenciesOf($(var.WixExperimentApp.TargetPath)))" ?>
-
     <?define Plugin="$(var.OptionalPlugin.TargetPath)" ?>
-    <?define PluginDepends="$(get.dependenciesOf($(var.OptionalPlugin.TargetPath)))" ?>
 </Include>

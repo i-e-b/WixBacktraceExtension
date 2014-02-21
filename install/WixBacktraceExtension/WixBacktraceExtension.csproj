@@ -40,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyKey.cs" />
+    <Compile Include="QuotedArgsSplitter.cs" />
     <Compile Include="ReferenceBuilder.cs" />
     <Compile Include="WixBacktraceExtension.cs" />
     <Compile Include="BacktracePreprocessorExtension.cs" />

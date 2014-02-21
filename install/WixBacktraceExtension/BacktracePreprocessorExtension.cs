@@ -1,132 +1,105 @@
 ﻿namespace WixBacktraceExtension
 {
-    using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Linq;
     using System.Reflection;
+    using System.Xml;
     using Microsoft.Tools.WindowsInstallerXml;
 
     public class BacktracePreprocessorExtension : PreprocessorExtension
     {
-        public override string[] Prefixes { get { return new[] { "get" }; } }
+        public override string[] Prefixes { get { return new[] { "build", "include" }; } }
 
+        private List<string> _componentsGenerated;
 
-        private List<string> _seen;
         public override void InitializePreprocess()
         {
             base.InitializePreprocess();
-            _seen = new List<string>();
+            _componentsGenerated = new List<string>();
         }
 
         public override void FinalizePreprocess()
         {
             base.FinalizePreprocess();
-            _seen.Clear();
+            _componentsGenerated.Clear();
         }
 
         /// <summary>
         /// The syntax is &lt;?pragma prefix.name args?&gt; where the arguments are just a string. Don't close the XmlWriter
         /// </summary>
         /// <param name="sourceLineNumbers"></param>
-        /// <param name="prefix"></param>
-        /// <param name="pragma"></param>
-        /// <param name="args"></param>
-        /// <param name="writer"></param>
+        /// <param name="prefix">The pragma prefix. This is matched to <see cref="Prefixes"/> to find this plugin. We have 'build' and 'include' for different sections of the .wxs</param>
+        /// <param name="pragma">The command being requested. This is our dispatch key</param>
+        /// <param name="args">Any arguments passed to the pragma. This is a raw string, but any $() references will have been resolved for us</param>
+        /// <param name="writer">Output into the final .wxs XML file</param>
         /// <returns></returns>
-        public override bool ProcessPragma(SourceLineNumberCollection sourceLineNumbers, string prefix, string pragma, string args, System.Xml.XmlWriter writer)
-        {
-            File.AppendAllText(@"C:\temp\log.txt", "\r\nPRAGMA: " + prefix + "." + pragma);
-            return base.ProcessPragma(sourceLineNumbers, prefix, pragma, args, writer);
-        }
-
-        public override string EvaluateFunction(string prefix, string function, string[] args)
+        public override bool ProcessPragma(SourceLineNumberCollection sourceLineNumbers, string prefix, string pragma, string args, XmlWriter writer)
         {
             switch (prefix)
             {
-                case "get":
-                    return BacktraceFunctions(function, args);
+                case "build":
+                    return BuildComponents(pragma, args, writer);
+
+                case "include":
+                    return ReferenceComponents(pragma, args, writer);
 
                 default:
-                    return null;
+                    return false;
             }
         }
 
-        string BacktraceFunctions(string function, IList<string> args)
+        static bool ReferenceComponents(string command, string argString, XmlWriter writer)
         {
-            switch (function)
+            var componentRefTemplate = @"<ComponentRef Id='{0}'/>"
+                .Replace("'", "\"");
+
+            if (command != "componentRefsFor") return false;
+            var args = new QuotedArgsSplitter(argString);
+
+            var dependencies = new ReferenceBuilder(Assembly.ReflectionOnlyLoadFrom(args.Primary)).NonGacDependencies().ToList();
+
+            foreach (var dependencyKey in dependencies)
             {
-                case "dependenciesOf":
-                    return GetDependencies(args);
+                var dependency = dependencyKey.ToString();
 
-                case "distinct":
-                    return GetDistinct(args);
-
-                case "componentId":
-                    return GetComponentId(args);
-
-                case "fileId":
-                    return GetFileId(args);
-
-                case "filePath":
-                    return GetFilePath(args);
-
-                default:
-                    return null;
+                writer.WriteRaw(string.Format(componentRefTemplate, AssemblyKey.ComponentId(dependency)));
             }
+
+            return true;
         }
 
-        string GetDistinct(IList<string> args)
+        bool BuildComponents(string command, string argString, XmlWriter writer)
         {
-            if (args.Count != 1) return " - Bad input to get.distinct. Should be output from get.dependenciesOf() - ";
+            var componentTemplate =
+@"<Component Id='{0}' Directory='{1}'>
+    <File Id='{2}' Source='{3}' KeyPath='yes'/>
+</Component>"
+                .Replace("'", "\"");
 
-            var output = new List<string>();
-            var bits = args[0].Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var bit in bits)
+            if (command != "componentsFor") return false;
+            var args = new QuotedArgsSplitter(argString);
+            var directory = args.WithDefault("in", "INSTALLFOLDER");
+
+            var dependencies = new ReferenceBuilder(Assembly.ReflectionOnlyLoadFrom(args.Primary)).NonGacDependencies().ToList();
+
+            foreach (var dependencyKey in dependencies)
             {
-                if (_seen.Contains(bit)) continue;
-                _seen.Add(bit);
-                output.Add(bit);
+                var dependency = dependencyKey.ToString();
+
+                // Components should be unique to the .msi
+                // Component ids MUST be unique to the .msi
+                if (_componentsGenerated.Contains(dependency)) continue;
+                _componentsGenerated.Add(dependency);
+
+                writer.WriteRaw(string.Format(componentTemplate,
+                    AssemblyKey.ComponentId(dependency),
+                    directory,
+                    AssemblyKey.FileId(dependency),
+                    AssemblyKey.FilePath(dependency)
+                    ));
             }
 
-            if (output.Count < 1) return "";
-            return string.Join(";", output);
-        }
-
-        static string GetFileId(IList<string> args)
-        {
-            if (args.Count != 1) return " - Bad input to get.fileId. Should be single value from get.dependenciesOf enumeration - ";
-            if (string.IsNullOrWhiteSpace(args[0])) return "";
-
-            return AssemblyKey.FileKey(args[0]);
-        }
-
-        static string GetFilePath(IList<string> args)
-        {
-            if (args.Count != 1) return " - Bad input to get.filePath. Should be single value from get.dependenciesOf enumeration - ";
-            if (string.IsNullOrWhiteSpace(args[0])) return "";
-
-            return AssemblyKey.FilePath(args[0]);
-        }
-
-        static string GetComponentId(IList<string> args)
-        {
-            if (args.Count != 1) return " - Bad input to get.componentId. Should be single value from get.dependenciesOf enumeration - ";
-            if (string.IsNullOrWhiteSpace(args[0])) return "";
-
-            return AssemblyKey.ComponentKey(args[0]);
-        }
-
-        static string GetDependencies(IList<string> args)
-        {
-            if (args.Count != 1) return " - Bad input to get.dependencies. Should be the path to a .Net assembly (.dll or .exe) - ";
-            if (string.IsNullOrWhiteSpace(args[0])) return "";
-
-            var dependencies = new ReferenceBuilder(Assembly.LoadFrom(args[0])).NonGacDependencies().ToList();
-
-            if (dependencies.Count < 1) return "";
-
-            return string.Join(";", dependencies);
+            return true;
         }
 
     }

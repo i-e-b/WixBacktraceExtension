@@ -24,7 +24,7 @@ namespace WixBacktraceExtension
         /// <summary>
         /// turn an assembly key string into a unique component key name
         /// </summary>
-        public static string ComponentKey(string keystring)
+        public static string ComponentId(string keystring)
         {
             var bits = keystring.Split('|');
             return "cmp_" + bits[0].Replace(", Version=", "_").Replace(".", "_");
@@ -41,7 +41,7 @@ namespace WixBacktraceExtension
         /// <summary>
         /// turn an assembly key string into a unique file key name
         /// </summary>
-        public static string FileKey(string keystring)
+        public static string FileId(string keystring)
         {
             var bits = keystring.Split('|');
             return "file_" + bits[0].Replace(", Version=", "_").Replace(".", "_");

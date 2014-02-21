@@ -10,26 +10,18 @@
 
         <Feature Id="Complete" Title="WiX Experiment package" Description="A WiX installer experiment - the complete package" Display="expand" Level="1" ConfigurableDirectory="INSTALLFOLDER">
 
-            <Feature Id="MainProgram" Title="SetupProject" Description="The experiment command line tool" Level="1"
-                     Absent="disallow" AllowAdvertise="no" InstallDefault="followParent">
-
-                <ComponentRef Id="MainExecutable" />
-                <?foreach dependency in $(var.AppDepends)?>
-                <ComponentRef Id="$(get.componentId($(var.dependency)))"/>
-                <?endforeach?>
+            <Feature Id="MainProgram" Title="WiX Experiment demo application" Description="The experiment command line tool, shows install location and plugins deployed" Level="1" Absent="disallow" AllowAdvertise="no" InstallDefault="followParent">
+                <ComponentRef Id="MainExecutable"/>
+                <?pragma include.componentRefsFor $(var.App)?>
             </Feature>
 
-            <Feature Id="_Product_Feature_12_3245" Title="OptionalPlugin" Description="An optional plugin that adds more greetings" Level="1000"
-                     Absent="allow" AllowAdvertise="no" InstallDefault="followParent">
-
-                <ComponentRef Id="OptionalPlugin" />
-                <?foreach dependency in $(var.PluginDepends)?>
-                <ComponentRef Id="$(get.componentId($(var.dependency)))"/>
-                <?endforeach?>
+            <Feature Id="PluginFeature" Title="Optional Plugin" Description="An optional plugin that adds more greetings" Level="4" Absent="allow" AllowAdvertise="no" InstallDefault="followParent">
+                <ComponentRef Id="OptionalPlugin"/>
+                <?pragma include.componentRefsFor $(var.Plugin)?>
             </Feature>
         </Feature>
 
-        <CustomAction Id='LaunchFile' FileKey='CoreExecutable' ExeCommand='' Return='asyncNoWait' />
+        <CustomAction Id="LaunchFile" FileKey="CoreExecutable" ExeCommand="" Return="asyncNoWait" />
 
         <InstallExecuteSequence>
             <Custom Action="LaunchFile" After="InstallFinalize">NOT Installed</Custom>
@@ -60,8 +52,8 @@
     </Fragment>
 
     <Fragment>
+        <?pragma build.componentsFor "$(var.App)" in "INSTALLFOLDER"?>
         <Component Id="MainExecutable" Directory="INSTALLFOLDER">
-            <!-- Component for the principal build output -->
             <File Id="CoreExecutable" Name="WixExperimentApp.exe" Source="$(var.App)" KeyPath="yes">
                 <Shortcut Id="_Product_Shortcut_32_3120" Directory="ProgramMenuDir" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
                 <Shortcut Id="_Product_Shortcut_33_3130" Directory="DesktopFolder" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
@@ -69,60 +61,12 @@
             <RemoveFolder Id="_Product_RemoveFolder_35_3145" Directory="INSTALLFOLDER" On="uninstall"/>
             <RemoveFolder Id="_Product_RemoveFolder_44_2437" Directory="ProgramMenuDir" On="uninstall"/>
         </Component>
-        <?foreach dependency in $(get.distinct($(var.AppDepends)))?>
-        <?if not $(get.filePath($(var.dependency))) = ""?>
-        <Component Id="$(get.componentId($(var.dependency)))" Directory="INSTALLFOLDER">
-            <File Id="$(get.fileId($(var.dependency)))" Source="$(get.filePath($(var.dependency)))"/>
-        </Component>
-        <?endif?>
-        <?endforeach?>
     </Fragment>
 
-
     <Fragment>
+        <?pragma build.componentsFor "$(var.Plugin)" in "PluginsFolder"?>
         <Component Id="OptionalPlugin" Directory="PluginsFolder">
-            <!-- Component for the principal build output -->
-            <File Id="OptionalPluginDll" Name="WixExperimentApp.exe" Source="$(var.App)" KeyPath="yes"/>
+            <File Id="OptionalPluginDll" Name="OptionalPlugin.dll" Source="$(var.Plugin)" KeyPath="yes"/>
         </Component>
-        <?foreach dependency in $(get.distinct($(var.PluginDepends)))?>
-        <?if not $(get.filePath($(var.dependency))) = ""?>
-        <Component Id="$(get.componentId($(var.dependency)))" Directory="PluginsFolder">
-            <File Id="$(get.fileId($(var.dependency)))" Source="$(get.filePath($(var.dependency)))"/>
-        </Component>
-        <?endif?>
-        <?endforeach?>
     </Fragment>
-
-        <!--
-        <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-            <Component Id="MainExecutable"> < !- - Component for the principal build output - ->
-                <File Id="_Product_File_37_4144" Name="WixExperimentApp.exe" Source="$(var.App)" KeyPath="yes">
-                    <Shortcut Id="_Product_Shortcut_32_3120" Directory="ProgramMenuDir" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
-                    <Shortcut Id="_Product_Shortcut_33_3130" Directory="DesktopFolder" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
-                </File>
-                <RemoveFolder Id="_Product_RemoveFolder_35_3145" Directory="INSTALLFOLDER" On="uninstall"/>
-                <RemoveFolder Id="_Product_RemoveFolder_44_2437" Directory="ProgramMenuDir" On="uninstall"/>
-            </Component>
-
-            <?foreach dependency in $(var.AppDepends)?> < !- - A separate component for every DLL referenced by the app - ->
-                <Component Id="MainExecutable_$(get.id())">
-                    <File Id="_$(get.id())" Source="$(var.dependency)"/>
-                </Component>
-            <?endforeach?>
-        </ComponentGroup>
-    </Fragment>
-
-    <Fragment>
-        <ComponentGroup Id="OptionalPluginComponents" Directory="PluginsFolder">
-            <Component Id="_Product_Component_42_3210">
-                <File Id="_Product_File_43_3215" Name="OptionalPlugin.dll" Source="$(var.Plugin)" KeyPath="yes"/>
-            </Component>
-
-            <?foreach dependency in $(var.PluginDepends)?> <!- - A separate component for every DLL referenced by the app - ->
-                <Component Id="MainExecutable_$(get.id())">
-                    <File Id="_$(get.id())" Source="$(var.dependency)"/>
-                </Component>
-            <?endforeach?>
-        </ComponentGroup>
-    </Fragment> -->
 </Wix>
