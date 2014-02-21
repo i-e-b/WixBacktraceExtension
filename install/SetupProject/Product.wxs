@@ -30,9 +30,10 @@
         <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
         <WixVariable Id="WixUIBannerBmp" Value="Images\WixUIBannerBmp.bmp" />
         <WixVariable Id="WixUIDialogBmp" Value="Images\WixUIDialogBmp.bmp" />
-        <UIRef Id="WixUI_FeatureTree" />
-        <!-- WixUI_Mondo gives the Typical/Custom/Full options. WixUI_FeatureTree skips this step -->
         <UIRef Id="WixUI_ErrorProgressText" />
+
+        <!-- WixUI_Mondo gives the Typical/Custom/Full options. WixUI_FeatureTree skips this step -->
+        <UIRef Id="WixUI_FeatureTree" />
     </Product>
 
     <Fragment>

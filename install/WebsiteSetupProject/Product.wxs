@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:iis="http://schemas.microsoft.com/wix/IIsExtension">
+    <?include $(sys.CURRENTDIR)Definitions.wxi ?>
+
+	<Product Id="CBE03671-3D8E-4E95-91A3-84A9D7F18CCE" Name="WebsiteSetupProject" Language="1033" Version="1.0.0.0" Manufacturer="No one, it's software" UpgradeCode="7ddf9658-9ba6-425b-8df0-1be407846a3f">
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+        <MajorUpgrade DowngradeErrorMessage="A newer version of WiX Experiment is already installed." />
+        <MediaTemplate EmbedCab="yes" />
+
+		<Feature Id="WebSiteFeature" Title="WebsiteSetupProject" Description="A WiX installer for a web site" Level="1">
+			<ComponentGroupRef Id="WebSiteComponents" />
+		</Feature>
+
+        <!-- Tribold specific:
+        <InstallExecuteSequence>
+            <Custom Action="IISManagement.SetApplicationPoolUser" After="InstallFinalize"><![CDATA[((NOT Installed OR MaintenanceMode="Modify") AND APPLICATION_POOL_USE_EXISTING <> 1)]]></Custom>
+            <Custom Action="IISManagement.DeleteApplicationPool" Before="RemoveFiles"><![CDATA[(NOT UPGRADINGPRODUCTCODE AND &WebSiteFeature = 2 AND APPLICATION_POOL_USE_EXISTING <> 1)]]></Custom>
+        </InstallExecuteSequence>
+        -->
+
+        <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+        <WixVariable Id="WixUIBannerBmp" Value="Images\WixUIBannerBmp.bmp" />
+        <WixVariable Id="WixUIDialogBmp" Value="Images\WixUIDialogBmp.bmp" />
+        <UIRef Id="WixUI_ErrorProgressText" />
+
+        <!-- WixUI_Mondo gives the Typical/Custom/Full options. WixUI_FeatureTree skips this step -->
+        <UIRef Id="WixUI_FeatureTree" />
+	</Product>
+
+    <Fragment>
+        <!-- Find the default location of sites installed on IIS -->
+        <Property Id="SITEROOTINSTALLFOLDER">
+            <RegistrySearch Id="GetInetpubDirectory" Root="HKLM" Key="SOFTWARE\Microsoft\InetStp" Name="PathWWWRoot" Type="directory" />
+        </Property>
+        <!-- Defines the root of the directory structure that the product is to install to. All other paths are relative to this unless specified -->
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="INSTALLFOLDER" Name="WixExperimentWebFolder" />
+        </Directory>
+        <!-- IIS web root installation folder -->
+        <DirectoryRef Id="INSTALLFOLDER">
+            <!-- Note: Specifying the name as . breaks the link to the parent directory structure (this is a Windows Installer feature) -->
+            <Directory Id="SITEROOTINSTALLFOLDER" Name=".">
+                <Directory Id="SITE_INSTALLFOLDER" Name="WixExperimentWebFolder">
+                    <Directory Id="SITE_INSTALLBINFOLDER" Name="bin" />
+                </Directory>
+            </Directory>
+        </DirectoryRef>
+    </Fragment>
+
+	<Fragment>
+		<ComponentGroup Id="WebSiteComponents" Directory="SITE_INSTALLFOLDER">
+			<!-- TODO: Publish site, add published site files -->
+
+            <!-- IIS Site Configuration -->
+            <Component Id="IisSiteComponent" Guid="9A20563B-694A-497D-B8C9-A6851A2D288B" KeyPath="yes">
+                <CreateFolder />
+                <!-- Creates the IIS Site -->
+                <iis:WebSite Id="IisWebSite" AutoStart="yes" ConfigureIfExists="no" ConnectionTimeout="30" Description="Wix Experiment Website" Directory="SITE_INSTALLFOLDER" SiteId="*" StartOnInstall="yes">
+                    <!-- Sets the WebSite Address -->
+                    <iis:WebAddress Id="_Product_WebAddress_56_5441" IP="*" Port="80" Secure="no" />
+                    <!-- Sets the Web Directory Properties -->
+                    <iis:WebDirProperties Id="_Product_WebDirProperties_58_5446" AnonymousAccess="yes" AspDetailedError="no" BasicAuthentication="no" WindowsAuthentication="no" />
+                    <!-- Sets the Web Application -->
+                    <iis:WebApplication Name="WixExperimentWebsite" Id="_Product_WebApplication_60_5452" AllowSessions="no" ClientDebugging="no" DefaultScript="JScript" Isolation="medium" ParentPaths="default" ScriptTimeout="30" SessionTimeout="0" WebAppPool="_Product_WebAppPool_66_5541" />
+                </iis:WebSite>
+                <RemoveFolder Id="_992A834513764D1B944743FEE5EA34FB" On="uninstall" />
+            </Component>
+            <!-- Web Application Pool -->
+            <Component Id="IisWebAppPoolComponent" Guid="A1A037B5-938C-48AF-BA65-C906F53A2BB1" KeyPath="yes" Permanent="yes">
+                <iis:WebAppPool Id="_Product_WebAppPool_66_5541" Name="WixExperimentAppPool" ManagedPipelineMode="integrated" ManagedRuntimeVersion="v4.0">
+                    <iis:RecycleTime Value="05:00" />
+                </iis:WebAppPool>
+            </Component>
+        </ComponentGroup>
+	</Fragment>
+</Wix>
