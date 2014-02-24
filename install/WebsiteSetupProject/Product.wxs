@@ -2,19 +2,25 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
      xmlns:iis="http://schemas.microsoft.com/wix/IIsExtension">
     <?include $(sys.CURRENTDIR)Definitions.wxi ?>
-	<?define PublishTemp=$(publish.tempDirectory)?>
-	<?pragma publish.webSiteProject "$(var.SiteProject)" to "$(var.PublishTemp)" for "Release"?>
+    <?define PublishTemp=$(publish.tempDirectory)?>
+    <?pragma publish.webSiteProject "$(var.SiteProject)" to "$(var.PublishTemp)" for "Release"?>
 
-	<Product Id="CBE03671-3D8E-4E95-91A3-84A9D7F18CCE" Name="WebsiteSetupProject" Language="1033" Version="1.0.0.0" Manufacturer="No one, it's software" UpgradeCode="aaaa9658-9ba6-425b-8df0-1be40784aaaa">
-		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+    <Product Id="CBE03671-3D8E-4E95-91A3-84A9D7F18CCE" Name="WebsiteSetupProject" Language="1033" Version="1.0.0.0" Manufacturer="No one, it's software" UpgradeCode="aaaa9658-9ba6-425b-8df0-1be40784aaaa">
+        <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
         <MajorUpgrade DowngradeErrorMessage="A newer version of WiX Experiment website is already installed." />
         <MediaTemplate EmbedCab="yes" />
 
-		<Feature Id="WebSiteFeature" Title="WebsiteSetupProject" Description="A WiX installer for a web site" Level="1">
-            <ComponentGroupRef Id="IisWebSiteSetup" />
-            <ComponentGroupRef Id="WebsiteContent" />
-		</Feature>
+        <Feature Id="Complete" Title="WiX Experiment website package" Description="A WiX installer experiment - the complete package" Display="expand" Level="1">
+            <Feature Id="WebSiteFeature" Title="WebsiteSetupProject" Description="A WiX installer for a web site" Level="1">
+                <ComponentGroupRef Id="IisWebSiteSetup" />
+                <ComponentGroupRef Id="WebsiteContent" />
+            </Feature>
+
+            <Feature Id="PluginFeature" Title="Optional Plugin" Description="An optional plugin that adds more greetings" Level="4" Absent="allow" AllowAdvertise="no" InstallDefault="followParent">
+                <ComponentGroupRef Id="OptionalPlugin" />
+            </Feature>
+        </Feature>
 
         <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
         <WixVariable Id="WixUIBannerBmp" Value="Images\WixUIBannerBmp.bmp" />
@@ -23,7 +29,7 @@
 
         <!-- WixUI_Mondo gives the Typical/Custom/Full options. WixUI_FeatureTree skips this step -->
         <UIRef Id="WixUI_FeatureTree" />
-	</Product>
+    </Product>
 
     <Fragment>
         <!-- Find the default location of sites installed on IIS -->
@@ -38,9 +44,13 @@
         <DirectoryRef Id="INSTALLFOLDER">
             <Directory Id="SITEROOTINSTALLFOLDER" Name=".">
                 <Directory Id="SITE_INSTALLFOLDER" Name="WixExperimentWebFolder">
-					<?pragma build.directoriesMatching "$(var.PublishTemp)" withPrefix "SITE" ?>
+                    <?pragma build.directoriesMatching "$(var.PublishTemp)" withPrefix "SITE" ?>
                 </Directory>
             </Directory>
+        </DirectoryRef>
+        <DirectoryRef Id="SITE_BIN">
+            <!-- This is how to reference a new folder inside an auto-generated one -->
+            <Directory Id="PluginsFolder" Name="Plugins"/>
         </DirectoryRef>
     </Fragment>
 
@@ -50,7 +60,7 @@
             <!-- the pragma below sets all the correct directories, so we must NOT have a directory on the component group -->
             <?pragma components.publishedWebsiteIn "$(var.PublishTemp)" inDirectoriesWithPrefix "SITE" rootDirectory "SITE_INSTALLFOLDER" ?>
         </ComponentGroup>
-        
+
         <ComponentGroup Id="IisWebSiteSetup" Directory="SITE_INSTALLFOLDER">
             <!-- IIS Site Configuration -->
             <Component Id="IisSiteComponent" Guid="9A20563B-694A-497D-B8C9-A6851A2D288B" KeyPath="yes">
@@ -62,7 +72,7 @@
                 </iis:WebSite>
                 <RemoveFolder Id="_Product_RemoveFolder_77_2612" On="uninstall" />
             </Component>
-            
+
             <!-- Web Application Pool -->
             <Component Id="IisWebAppPoolComponent" Guid="A1A037B5-938C-48AF-BA65-C906F53A2BB1" KeyPath="yes" Permanent="yes">
                 <iis:WebAppPool Id="_Product_WebAppPool_66_5541" Name="WixExperimentAppPool" ManagedPipelineMode="integrated" ManagedRuntimeVersion="v4.0">
@@ -70,5 +80,14 @@
                 </iis:WebAppPool>
             </Component>
         </ComponentGroup>
-	</Fragment>
+    </Fragment>
+
+    <Fragment>
+        <ComponentGroup Id="OptionalPlugin" >
+            <Component Id="OptionalPluginRoot" Directory="PluginsFolder" Guid="78686C4B-D067-4510-A14B-7535A30C557E">
+                <File Id="OptionalPluginDll" Name="OptionalPlugin.dll" Source="$(var.Plugin)" KeyPath="yes"/>
+            </Component>
+            <?pragma components.uniqueDependenciesOf "$(var.Plugin)" in "PluginsFolder"?>
+        </ComponentGroup>
+    </Fragment>
 </Wix>

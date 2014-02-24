@@ -4,3 +4,12 @@
 
 <h2>Index</h2>
 <p>This is a simple little dummy website to prove that the installer works as expected.</p>
+<p><span id="replaceMe">WRONG</span></p>
+<p><span class="ugly">If styles are correctly loaded, this text should be on a yellow background</span></p>
+<p>Plugins greetings: @Model.PluginGreetings <small><i>(I looked in @Model.LookIn)</i></small></p>
+
+@section scripts {
+<script type="text/ecmascript">
+    $('#replaceMe').text("If you can see this text, jQuery was correctly installed and loaded");
+</script>
+}

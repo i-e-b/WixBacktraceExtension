@@ -3,4 +3,6 @@
     <!-- Principal outputs for the projects -->
     <?define Site="$(var.SampleMvcApplication.TargetPath)" ?>
     <?define SiteProject="$(var.SampleMvcApplication.ProjectPath)" ?>
+
+    <?define Plugin="$(var.OptionalPlugin.TargetPath)" ?>
 </Include>

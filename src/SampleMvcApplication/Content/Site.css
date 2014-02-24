@@ -9,6 +9,10 @@ header, footer, nav, section {
     display: block;
 }
 
+.ugly {
+    background-color: #ed0;
+}
+
 
 /* Styles for basic forms
 -----------------------------------------------------------*/

@@ -12,8 +12,7 @@
 
     public class PreprocessorActions
     {
-        const string ComponentTemplate = @"<Component Id='{0}' Directory='{1}'><File Id='{2}' Source='{3}' KeyPath='yes'/></Component>";
-        const string ComponentGuidTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
+        const string ComponentTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
 
         /// <summary>
         /// Build Directory nodes to match those under a given file path.
@@ -88,7 +87,7 @@
                 var uniqueComponentId = "publishedComponent_" + Guid.NewGuid().ToString("N");
                 var uniqueFileId = "publishedFile_" + Guid.NewGuid().ToString("N");
                 var guid = Guid.NewGuid().ToString();
-                writer.WriteRaw(String.Format(ComponentGuidTemplate, uniqueComponentId, guid, directoryId, uniqueFileId, filePath));
+                writer.WriteRaw(String.Format(ComponentTemplate, uniqueComponentId, guid, directoryId, uniqueFileId, filePath));
             }
         }
 
@@ -135,8 +134,9 @@
 
             writer.WriteRaw(String.Format(ComponentTemplate,
                 componentId,
+                Guid.NewGuid(),
                 directory,
-                "file_"+componentId,
+                "file_" + componentId,
                 target
                 ));
 
@@ -168,6 +168,7 @@
 
                 writer.WriteRaw(String.Format(ComponentTemplate,
                     AssemblyKey.ComponentId(dependency),
+                    Guid.NewGuid(),
                     directory,
                     AssemblyKey.FileId(dependency),
                     AssemblyKey.FilePath(dependency)
