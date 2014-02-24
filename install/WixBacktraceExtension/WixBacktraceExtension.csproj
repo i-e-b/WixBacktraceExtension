@@ -45,11 +45,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Actions\PreprocessorActions.cs" />
     <Compile Include="Backtrace\AssemblyKey.cs" />
     <Compile Include="Configuration\ConfigTransform.cs" />
     <Compile Include="Configuration\DummyTransformLogger.cs" />
     <Compile Include="Backtrace\QuotedArgsSplitter.cs" />
     <Compile Include="Backtrace\ReferenceBuilder.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="SitePublication\Website.cs" />
     <Compile Include="WixBacktraceExtension.cs" />
     <Compile Include="BacktracePreprocessorExtension.cs" />

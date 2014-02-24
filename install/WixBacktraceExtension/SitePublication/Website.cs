@@ -5,30 +5,53 @@
     using System.Linq;
     using System.Xml;
     using Backtrace;
+    using Configuration;
     using Microsoft.Build.BuildEngine;
 
     public class Website
     {
         /// <summary>
         /// Call out to MSBuild, publish site as normal
-        /// <para>Expects args to be from `"C:\path\to\site.csproj" to "C:\path\to\temp" config "Release"`</para>
-        /// <para>Both the source project and target directory should already exist</para>
-        /// <para>If `config` parameter is not given, it will default to "Release"</para>
-        /// <para>Will attempt to transform `web.config` using `web.{config}.config` (i.e. `web.Release.config`)</para>
+        /// <para>Expects args to be  `publish.webSiteProject "C:\path\to\site.csproj" to "C:\path\to\temp" for "BuildConfiguration"`</para>
+        /// <para>Both the source project and target directory should already exist. You can create a temp directory
+        /// into a variable with &lt;?define PublishTemp=$(publish.tempDirectory)?&gt;</para>
+        /// <para>If `for` parameter is not given, it will default to "Release"</para>
+        /// <para>Will attempt to transform `web.config` using `web.{for}.config` (i.e. `web.Release.config`)</para>
         /// </summary>
         public static bool PublishSiteToFolder(QuotedArgsSplitter args, XmlWriter writer)
         {
-            var projectFile = args.Primary;
+            var projectFile = args.PrimaryRequired();
             var tempDir = args.NamedArguments["to"];
-            var config = args.WithDefault("config", "Release");
+            var config = args.WithDefault("for", "Release");
             if (!File.Exists(projectFile)) return true;
             if (!Directory.Exists(tempDir)) return true;
 
 
             BuildAndPublishProject(writer, tempDir, config, projectFile);
             MoveFilesToCorrectLocation(tempDir);
+            TransformConfiguration(tempDir, config);
+
+            //File.AppendAllText(@"C:\Temp\log.txt", "\r\nPublish complete: " + tempDir);
 
             return true;
+        }
+
+        static void TransformConfiguration(string filesDirectory, string config)
+        {
+            var target = Path.Combine(filesDirectory, "Web.config");
+            var original = target + ".original";
+            var transform = Path.Combine(filesDirectory, "Web." + config + ".config");
+
+            if (!File.Exists(target) || !File.Exists(transform)) return;
+
+            File.Copy(target, original, true);
+            ConfigTransform.Apply(original, transform, target);
+
+            File.Delete(original);
+            foreach (var transformFile in Directory.GetFiles(filesDirectory, "Web.*.config", SearchOption.TopDirectoryOnly))
+            {
+                File.Delete(transformFile);
+            }
         }
 
         static void MoveFilesToCorrectLocation(string srcDir)
@@ -62,11 +85,6 @@
             bpg.SetProperty("DeployTarget", "Package");
             bpg.SetProperty("PackageLocation", @"$(OutDir)\MSDeploy\Package.zip");
             bpg.SetProperty("_PackageTempDir", tempDir + "\\");
-
-            // Web.config transform special sauce:
-            bpg.SetProperty("TransformInputFile", @"$(ProjectPath)\Web.config");
-            bpg.SetProperty("TransformFile", @"$(ProjectPath)\Web.$(Configuration).config");
-            bpg.SetProperty("TransformOutputFile", @"$(DeployPath)\Web.config");
 
             var success = engine.BuildProjectFile(projectFile, null, bpg);
 

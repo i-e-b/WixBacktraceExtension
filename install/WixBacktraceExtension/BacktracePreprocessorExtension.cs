@@ -3,11 +3,9 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
-    using System.Reflection;
     using System.Xml;
     using Backtrace;
-    using global::WixBacktraceExtension.Configuration;
+    using Actions;
     using SitePublication;
     using Microsoft.Tools.WindowsInstallerXml;
 
@@ -53,10 +51,10 @@
                     return BuildActions(pragma, cleanArgs, writer);
 
                 case "include":
-                    return ReferenceComponents(pragma, cleanArgs, writer);
+                    return PreprocessorActions.ReferenceComponents(pragma, cleanArgs, writer);
 
                 case "publish":
-                    return PublishWebProject(pragma, cleanArgs, writer);
+                    return PublishCommands(pragma, cleanArgs, writer);
 
                 default:
                     return false;
@@ -68,10 +66,25 @@
             switch (pragma)
             {
                 case "componentsFor":
-                    return BuildComponents(cleanArgs, writer);
+                    return PreprocessorActions.BuildComponents(_componentsGenerated, cleanArgs, writer);
 
                 case "transformConfigOf":
-                    return TransformConfiguration(cleanArgs, writer);
+                    return PreprocessorActions.TransformConfiguration(cleanArgs, writer);
+
+                case "directoriesMatching":
+                    return PreprocessorActions.BuildMatchingDirectories(cleanArgs, writer);
+
+                default:
+                    return false;
+            }
+        }
+
+        static bool PublishCommands(string command, QuotedArgsSplitter args, XmlWriter writer)
+        {
+            switch (command)
+            {
+                case "webSiteProject":
+                    return Website.PublishSiteToFolder(args, writer);
 
                 default:
                     return false;
@@ -94,105 +107,6 @@
         {
             base.FinalizePreprocess();
             _componentsGenerated.Clear();
-        }
-
-        static bool PublishWebProject(string command, QuotedArgsSplitter args, XmlWriter writer)
-        {
-            switch (command)
-            {
-                case "webSiteProject":
-                    return Website.PublishSiteToFolder(args, writer);
-
-                default:
-                    return false;
-            }
-        }
-
-        static bool ReferenceComponents(string command, QuotedArgsSplitter args, XmlWriter writer)
-        {
-            var componentRefTemplate = @"<ComponentRef Id='{0}'/>"
-                .Replace("'", "\"");
-
-            if (command != "componentRefsFor") return false;
-
-            var dependencies = new ReferenceBuilder(Assembly.ReflectionOnlyLoadFrom(args.Primary)).NonGacDependencies().ToList();
-
-            foreach (var dependencyKey in dependencies)
-            {
-                var dependency = dependencyKey.ToString();
-
-                writer.WriteRaw(String.Format(componentRefTemplate, AssemblyKey.ComponentId(dependency)));
-            }
-
-            return true;
-        }
-
-
-        /// <summary>
-        /// Build file components for a .Net app.config file.
-        /// <para> </para>
-        /// argument syntax is `build.transformConfigOf "c:\path\to\assembly.exe" for "Release" withId "MyComponentId" in "InstallDirID"`.
-        /// The install directory should be declared in the .wxs file.
-        /// <para> </para>
-        /// Default `for` is "Release", default `in` is "INSTALLFOLDER". All other parameters must be supplied.
-        /// </summary>
-        bool TransformConfiguration(QuotedArgsSplitter args, XmlWriter writer)
-        {
-            var target = args.PrimaryRequired() + ".config";
-            var directory = args.WithDefault("in", "INSTALLFOLDER");
-            var config = args.WithDefault("for", "Release");
-            var componentId = args.Required("withId");
-
-            var transformPath = Path.Combine(Path.GetDirectoryName(target) ?? "", "App." + config + ".config");
-            var original = target + ".original";
-
-            if (!File.Exists(target)) throw new Exception("Expected to find \""+target+"\" but it was missing");
-            if (!File.Exists(transformPath)) throw new Exception("Expected to find transform at \"" + transformPath + "\" but it was missing");
-
-            File.Copy(target, original, true);
-            ConfigTransform.Apply(original, transformPath, target);
-
-            writer.WriteRaw(String.Format(ComponentTemplate,
-                componentId,
-                directory,
-                "file_"+componentId,
-                target
-                ));
-
-            return true;
-        }
-
-        /// <summary>
-        /// Build file components for a .Net assembly's dependencies.
-        /// <para>This DOES NOT include the target assembly itself.</para>
-        /// </summary>
-        /// <param name="args">argument syntax is `build.componentsFor "c:\path\to\assembly.exe" in "InstallDirID"`. The install directory should be declared in the .wxs file.</param>
-        /// <param name="writer">output writer</param>
-        bool BuildComponents(QuotedArgsSplitter args, XmlWriter writer)
-        {
-            var target = args.PrimaryRequired();
-            var directory = args.WithDefault("in", "INSTALLFOLDER");
-
-            var dependencies = new ReferenceBuilder(Assembly.ReflectionOnlyLoadFrom(target)).NonGacDependencies().ToList();
-
-            foreach (var dependencyKey in dependencies)
-            {
-                var dependency = dependencyKey.ToString();
-
-                // Components should be unique to the .msi
-                // Component ids MUST be unique to the .msi
-                if (_componentsGenerated.Contains(dependency)) continue;
-                _componentsGenerated.Add(dependency);
-
-                writer.WriteRaw(String.Format(ComponentTemplate,
-                    AssemblyKey.ComponentId(dependency),
-                    directory,
-                    AssemblyKey.FileId(dependency),
-                    AssemblyKey.FilePath(dependency)
-                    ));
-            }
-
-            return true;
         }
     }
 }
