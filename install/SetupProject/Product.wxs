@@ -54,7 +54,10 @@
     </Fragment>
 
     <Fragment>
-        <?pragma components.transformedConfigOf "$(var.App)" for "Release" withId "MainExeConfig" in "INSTALLFOLDER"?>
+        <?pragma components.transformedConfigOf "$(var.App)"
+                                            for "Release"
+                                         withId "MainExeConfig"
+                                             in "INSTALLFOLDER"?>
 
         <ComponentGroup Id="MainExeDependencies" >
             <?pragma components.uniqueDependenciesOf "$(var.App)" in "INSTALLFOLDER"?>
@@ -72,7 +75,9 @@
 
     <Fragment>
         <ComponentGroup Id="OptionalPluginDependencies" >
-        <?pragma components.uniqueDependenciesOf "$(var.Plugin)" in "PluginsFolder"?>
+            <!-- Uncomment the line below to force duplication of contracts file (not required)
+            <?pragma components.resetUniqueFilter?> -->
+            <?pragma components.uniqueDependenciesOf "$(var.Plugin)" in "PluginsFolder"?>
         </ComponentGroup>
         <Component Id="OptionalPlugin" Directory="PluginsFolder">
             <File Id="OptionalPluginDll" Name="OptionalPlugin.dll" Source="$(var.Plugin)" KeyPath="yes"/>

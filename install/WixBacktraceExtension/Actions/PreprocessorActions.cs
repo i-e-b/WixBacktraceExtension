@@ -161,16 +161,16 @@
             {
                 var dependency = dependencyKey.ToString();
 
-                // Components should be unique to the .msi
+                // Components should be unique to the .msi (can be reset with `components.resetUniqueFilter` pragma call)
                 // Component id MUST be unique to the .msi
                 if (componentsGenerated.Contains(dependency)) continue;
                 componentsGenerated.Add(dependency);
 
                 writer.WriteRaw(String.Format(ComponentTemplate,
-                    AssemblyKey.ComponentId(dependency),
+                    AssemblyKey.ComponentId(dependency) + "_" + Guid.NewGuid().ToString("N"),
                     Guid.NewGuid(),
                     directory,
-                    AssemblyKey.FileId(dependency),
+                    AssemblyKey.FileId(dependency) + "_" + Guid.NewGuid().ToString("N"),
                     AssemblyKey.FilePath(dependency)
                     ));
             }

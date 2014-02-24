@@ -64,6 +64,10 @@
         {
             switch (pragma)
             {
+                case "resetUniqueFilter":
+                    componentsGenerated.Clear();
+                    return true;
+
                 case "uniqueDependenciesOf":
                     return PreprocessorActions.BuildComponents(componentsGenerated, cleanArgs, writer);
 
