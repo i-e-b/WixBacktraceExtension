@@ -2,6 +2,9 @@
 {
     using Microsoft.Tools.WindowsInstallerXml;
 
+    /// <summary>
+    /// Bindings from Wix to the backtrace extension.
+    /// </summary>
     public class WixBacktraceExtension : WixExtension
     {
         private BacktracePreprocessorExtension preprocessorExtension;

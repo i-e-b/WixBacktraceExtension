@@ -1,7 +1,7 @@
 ﻿namespace BacktraceExtension.Tests
 {
     using NUnit.Framework;
-    using WixBacktraceExtension;
+    using WixBacktraceExtension.Backtrace;
 
     [TestFixture]
     public class QuotedArgsSplitterTests

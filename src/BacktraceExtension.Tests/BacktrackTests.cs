@@ -3,7 +3,7 @@
     using System.Linq;
     using System.Reflection;
     using NUnit.Framework;
-    using WixBacktraceExtension;
+    using WixBacktraceExtension.Backtrace;
 
     [TestFixture]
     public class BacktrackTests

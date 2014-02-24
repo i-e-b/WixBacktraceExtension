@@ -1,4 +1,4 @@
-namespace WixBacktraceExtension
+namespace WixBacktraceExtension.Backtrace
 {
     using System.Reflection;
 

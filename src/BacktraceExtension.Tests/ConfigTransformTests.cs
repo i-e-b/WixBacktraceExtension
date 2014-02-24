@@ -4,14 +4,14 @@
     using System.IO;
     using System.Reflection;
     using NUnit.Framework;
-    using WixBacktraceExtension;
+    using WixBacktraceExtension.ConfigTransform;
 
     [TestFixture]
     public class ConfigTransformTests
     {
         string _srcPath;
-        string _transformPath;
         string _targetPath;
+        string _transformPath;
 
         [SetUp]
         public void setup()

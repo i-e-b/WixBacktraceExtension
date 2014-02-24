@@ -1,4 +1,4 @@
-﻿namespace WixBacktraceExtension
+﻿namespace WixBacktraceExtension.ConfigTransform
 {
     using System;
     using Microsoft.Web.XmlTransform;
