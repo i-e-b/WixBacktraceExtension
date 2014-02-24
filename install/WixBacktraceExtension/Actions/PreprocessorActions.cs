@@ -12,6 +12,9 @@
 
     public class PreprocessorActions
     {
+        const string ComponentTemplate = @"<Component Id='{0}' Directory='{1}'><File Id='{2}' Source='{3}' KeyPath='yes'/></Component>";
+        const string ComponentGuidTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
+
         /// <summary>
         /// Build Directory nodes to match those under a given file path.
         /// <para> </para>
@@ -35,24 +38,64 @@
         {
             foreach (var dir in Directory.GetDirectories(target))
             {
-                var id = dir.Replace(baseDir, prefix).FilterJunk();
+                var id = dir.Replace(baseDir, prefix).FilterJunk().ToUpperInvariant();
                 var name = Path.GetFileName(dir);
 
                 writer.WriteStartElement("Directory");
-                writer.WriteAttributeString("Id", id.ToUpperInvariant());
+                writer.WriteAttributeString("Id", id);
                 writer.WriteAttributeString("Name", name);
                 BuildDirectoriesRecursive(baseDir, dir, prefix, writer);
                 writer.WriteEndElement();
             }
+        }
 
+        /// <summary>
+        /// Build file components for a website published by the backtrace extension. Includes ALL files in the publish folder.
+        /// Components are NOT de-duplicated, and so are given guid IDs. You should encapsulate the output of the pragma in a ComponentGroup to reference.
+        /// <para> </para>
+        /// syntax is `components.publishedWebsiteIn "$(var.PublishTemp)" inDirectoriesWithPrefix "SITE" rootDirectory "SITE_INSTALLFOLDER"`.
+        /// The install directories should be built with `build.directoriesMatching` with a matching prefix.
+        /// Root directory (for files at the top level of the site folder) should be declared directly in the .wxs file and passed
+        /// to this pragma in full.
+        /// </summary>
+        public static bool BuildPublishedWebsiteComponents(QuotedArgsSplitter args, XmlWriter writer)
+        {
+            var target = args.PrimaryRequired();
+            var prefix = args.WithDefault("inDirectoriesWithPrefix", "").TrimEnd('_');
+            var root = args.Required("rootDirectory");
+
+            WritePublishedFilesInDirectory(writer, target, root);
+            BuildSiteComponentsRecursive(target, target, prefix, writer);
+
+            return true;
+        }
+
+        static void BuildSiteComponentsRecursive(string baseDir, string target, string prefix, XmlWriter writer)
+        {
+            foreach (var dir in Directory.GetDirectories(target))
+            {
+                var directoryId = dir.Replace(baseDir, prefix).FilterJunk().ToUpperInvariant();
+
+                WritePublishedFilesInDirectory(writer, dir, directoryId);
+                BuildSiteComponentsRecursive(baseDir, dir, prefix, writer);
+            }
+        }
+
+        static void WritePublishedFilesInDirectory(XmlWriter writer, string dir, string directoryId)
+        {
+            foreach (var filePath in Directory.GetFiles(dir, "*.*", SearchOption.TopDirectoryOnly))
+            {
+                var uniqueComponentId = "publishedComponent_" + Guid.NewGuid().ToString("N");
+                var uniqueFileId = "publishedFile_" + Guid.NewGuid().ToString("N");
+                var guid = Guid.NewGuid().ToString();
+                writer.WriteRaw(String.Format(ComponentGuidTemplate, uniqueComponentId, guid, directoryId, uniqueFileId, filePath));
+            }
         }
 
         public static bool ReferenceComponents(string command, QuotedArgsSplitter args, XmlWriter writer)
         {
             var componentRefTemplate = @"<ComponentRef Id='{0}'/>"
                 .Replace("'", "\"");
-
-            if (command != "componentRefsFor") return false;
 
             var dependencies = new ReferenceBuilder(Assembly.ReflectionOnlyLoadFrom(args.Primary)).NonGacDependencies().ToList();
 
@@ -90,7 +133,7 @@
             File.Copy(target, original, true);
             ConfigTransform.Apply(original, transformPath, target);
 
-            writer.WriteRaw(String.Format(BacktracePreprocessorExtension.ComponentTemplate,
+            writer.WriteRaw(String.Format(ComponentTemplate,
                 componentId,
                 directory,
                 "file_"+componentId,
@@ -119,11 +162,11 @@
                 var dependency = dependencyKey.ToString();
 
                 // Components should be unique to the .msi
-                // Component ids MUST be unique to the .msi
+                // Component id MUST be unique to the .msi
                 if (componentsGenerated.Contains(dependency)) continue;
                 componentsGenerated.Add(dependency);
 
-                writer.WriteRaw(String.Format(BacktracePreprocessorExtension.ComponentTemplate,
+                writer.WriteRaw(String.Format(ComponentTemplate,
                     AssemblyKey.ComponentId(dependency),
                     directory,
                     AssemblyKey.FileId(dependency),

@@ -15,8 +15,7 @@
     public class BacktracePreprocessorExtension : PreprocessorExtension
     {
         private List<string> _componentsGenerated;
-        public const string ComponentTemplate = @"<Component Id='{0}' Directory='{1}'><File Id='{2}' Source='{3}' KeyPath='yes'/></Component>";
-        public override string[] Prefixes { get { return new[] { "publish", "build", "include" }; } }
+        public override string[] Prefixes { get { return new[] { "publish", "build", "components" }; } }
 
         /// <summary>
         /// Prefixed variables, called like $(prefix.name)
@@ -50,8 +49,8 @@
                 case "build":
                     return BuildActions(pragma, cleanArgs, writer);
 
-                case "include":
-                    return PreprocessorActions.ReferenceComponents(pragma, cleanArgs, writer);
+                case "components":
+                    return ComponentActions(_componentsGenerated, pragma, cleanArgs, writer);
 
                 case "publish":
                     return PublishCommands(pragma, cleanArgs, writer);
@@ -61,16 +60,28 @@
             }
         }
 
-        bool BuildActions(string pragma, QuotedArgsSplitter cleanArgs, XmlWriter writer)
+        static bool ComponentActions(ICollection<string> componentsGenerated, string pragma, QuotedArgsSplitter cleanArgs, XmlWriter writer)
         {
             switch (pragma)
             {
-                case "componentsFor":
-                    return PreprocessorActions.BuildComponents(_componentsGenerated, cleanArgs, writer);
+                case "uniqueDependenciesOf":
+                    return PreprocessorActions.BuildComponents(componentsGenerated, cleanArgs, writer);
 
-                case "transformConfigOf":
+                case "transformedConfigOf":
                     return PreprocessorActions.TransformConfiguration(cleanArgs, writer);
 
+                case "publishedWebsiteIn":
+                    return PreprocessorActions.BuildPublishedWebsiteComponents(cleanArgs, writer);
+
+                default:
+                    return false;
+            }
+        }
+
+        static bool BuildActions(string pragma, QuotedArgsSplitter cleanArgs, XmlWriter writer)
+        {
+            switch (pragma)
+            {
                 case "directoriesMatching":
                     return PreprocessorActions.BuildMatchingDirectories(cleanArgs, writer);
 

@@ -12,16 +12,9 @@
         <MediaTemplate EmbedCab="yes" />
 
 		<Feature Id="WebSiteFeature" Title="WebsiteSetupProject" Description="A WiX installer for a web site" Level="1">
-            <ComponentGroupRef Id="WebSiteComponents" />
-			<ComponentGroupRef Id="WebSiteBinaries" />
+            <ComponentGroupRef Id="IisWebSiteSetup" />
+            <ComponentGroupRef Id="WebsiteContent" />
 		</Feature>
-
-        <!-- Tribold specific:
-        <InstallExecuteSequence>
-            <Custom Action="IISManagement.SetApplicationPoolUser" After="InstallFinalize"><![CDATA[((NOT Installed OR MaintenanceMode="Modify") AND APPLICATION_POOL_USE_EXISTING <> 1)]]></Custom>
-            <Custom Action="IISManagement.DeleteApplicationPool" Before="RemoveFiles"><![CDATA[(NOT UPGRADINGPRODUCTCODE AND &WebSiteFeature = 2 AND APPLICATION_POOL_USE_EXISTING <> 1)]]></Custom>
-        </InstallExecuteSequence>
-        -->
 
         <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
         <WixVariable Id="WixUIBannerBmp" Value="Images\WixUIBannerBmp.bmp" />
@@ -43,40 +36,33 @@
         </Directory>
         <!-- IIS web root installation folder -->
         <DirectoryRef Id="INSTALLFOLDER">
-            <!-- Note: Specifying the name as . breaks the link to the parent directory structure (this is a Windows Installer feature) -->
             <Directory Id="SITEROOTINSTALLFOLDER" Name=".">
                 <Directory Id="SITE_INSTALLFOLDER" Name="WixExperimentWebFolder">
 					<?pragma build.directoriesMatching "$(var.PublishTemp)" withPrefix "SITE" ?>
-                    <!-- creates directory nodes like: <Directory Id="SITE_BIN" Name="bin"></Directory>-->
                 </Directory>
             </Directory>
         </DirectoryRef>
     </Fragment>
 
     <Fragment>
-        <ComponentGroup Id="WebSiteBinaries">
-            <?pragma components.publishedWebsiteIn "$(var.PublishTemp)" inDirectoriesWithPrefix "SITE"?>
-            <!-- TODO: Publish site, add published site files -->
-            <Component Id='sampleFile' Guid='66F1F5BA-A49A-47EA-B297-1A73546FC6EE' Directory='SITE_BIN'>
-                <File Id='_Product_File_56_3347' Source='C:\Temp\publishdump\bin\SampleMvcApplication.dll' KeyPath='yes'/>
-            </Component>
+        <ComponentGroup Id="WebsiteContent">
+            <!-- Add published site files -->
+            <!-- the pragma below sets all the correct directories, so we must NOT have a directory on the component group -->
+            <?pragma components.publishedWebsiteIn "$(var.PublishTemp)" inDirectoriesWithPrefix "SITE" rootDirectory "SITE_INSTALLFOLDER" ?>
         </ComponentGroup>
-
-        <ComponentGroup Id="WebSiteComponents" Directory="SITE_INSTALLFOLDER">
+        
+        <ComponentGroup Id="IisWebSiteSetup" Directory="SITE_INSTALLFOLDER">
             <!-- IIS Site Configuration -->
             <Component Id="IisSiteComponent" Guid="9A20563B-694A-497D-B8C9-A6851A2D288B" KeyPath="yes">
                 <CreateFolder />
-                <!-- Creates the IIS Site -->
                 <iis:WebSite Id="IisWebSite" AutoStart="yes" ConfigureIfExists="no" ConnectionTimeout="30" Description="Wix Experiment Website" Directory="SITE_INSTALLFOLDER" SiteId="*" StartOnInstall="yes">
-                    <!-- Sets the WebSite Address -->
                     <iis:WebAddress Id="_Product_WebAddress_56_5441" IP="*" Port="80" Secure="no" />
-                    <!-- Sets the Web Directory Properties -->
                     <iis:WebDirProperties Id="_Product_WebDirProperties_58_5446" AnonymousAccess="yes" AspDetailedError="no" BasicAuthentication="no" WindowsAuthentication="no" />
-                    <!-- Sets the Web Application -->
                     <iis:WebApplication Name="WixExperimentWebsite" Id="_Product_WebApplication_60_5452" AllowSessions="no" ClientDebugging="no" DefaultScript="JScript" Isolation="medium" ParentPaths="default" ScriptTimeout="30" SessionTimeout="0" WebAppPool="_Product_WebAppPool_66_5541" />
                 </iis:WebSite>
                 <RemoveFolder Id="_Product_RemoveFolder_77_2612" On="uninstall" />
             </Component>
+            
             <!-- Web Application Pool -->
             <Component Id="IisWebAppPoolComponent" Guid="A1A037B5-938C-48AF-BA65-C906F53A2BB1" KeyPath="yes" Permanent="yes">
                 <iis:WebAppPool Id="_Product_WebAppPool_66_5541" Name="WixExperimentAppPool" ManagedPipelineMode="integrated" ManagedRuntimeVersion="v4.0">

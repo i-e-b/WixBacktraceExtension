@@ -13,12 +13,12 @@
             <Feature Id="MainProgram" Title="WiX Experiment demo application" Description="The experiment command line tool, shows install location and plugins deployed" Level="1" Absent="disallow" AllowAdvertise="no" InstallDefault="followParent">
                 <ComponentRef Id="MainExecutable"/>
                 <ComponentRef Id="MainExeConfig"/>
-                <?pragma include.componentRefsFor $(var.App)?>
+                <ComponentGroupRef Id="MainExeDependencies" />
             </Feature>
 
             <Feature Id="PluginFeature" Title="Optional Plugin" Description="An optional plugin that adds more greetings" Level="4" Absent="allow" AllowAdvertise="no" InstallDefault="followParent">
                 <ComponentRef Id="OptionalPlugin"/>
-                <?pragma include.componentRefsFor $(var.Plugin)?>
+                <ComponentGroupRef Id="OptionalPluginDependencies" />
             </Feature>
         </Feature>
 
@@ -54,8 +54,12 @@
     </Fragment>
 
     <Fragment>
-        <?pragma build.componentsFor "$(var.App)" in "INSTALLFOLDER"?>
-        <?pragma build.transformConfigOf "$(var.App)" for "Release" withId "MainExeConfig" in "INSTALLFOLDER"?>
+        <?pragma components.transformedConfigOf "$(var.App)" for "Release" withId "MainExeConfig" in "INSTALLFOLDER"?>
+
+        <ComponentGroup Id="MainExeDependencies" >
+            <?pragma components.uniqueDependenciesOf "$(var.App)" in "INSTALLFOLDER"?>
+        </ComponentGroup>
+
         <Component Id="MainExecutable" Directory="INSTALLFOLDER">
             <File Id="CoreExecutable" Name="WixExperimentApp.exe" Source="$(var.App)" KeyPath="yes">
                 <Shortcut Id="_Product_Shortcut_32_3120" Directory="ProgramMenuDir" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>
@@ -67,7 +71,9 @@
     </Fragment>
 
     <Fragment>
-        <?pragma build.componentsFor "$(var.Plugin)" in "PluginsFolder"?>
+        <ComponentGroup Id="OptionalPluginDependencies" >
+        <?pragma components.uniqueDependenciesOf "$(var.Plugin)" in "PluginsFolder"?>
+        </ComponentGroup>
         <Component Id="OptionalPlugin" Directory="PluginsFolder">
             <File Id="OptionalPluginDll" Name="OptionalPlugin.dll" Source="$(var.Plugin)" KeyPath="yes"/>
         </Component>
