@@ -12,6 +12,7 @@
 
             <Feature Id="MainProgram" Title="WiX Experiment demo application" Description="The experiment command line tool, shows install location and plugins deployed" Level="1" Absent="disallow" AllowAdvertise="no" InstallDefault="followParent">
                 <ComponentRef Id="MainExecutable"/>
+                <ComponentRef Id="MainExeConfig"/>
                 <?pragma include.componentRefsFor $(var.App)?>
             </Feature>
 
@@ -54,6 +55,7 @@
 
     <Fragment>
         <?pragma build.componentsFor "$(var.App)" in "INSTALLFOLDER"?>
+        <?pragma build.transformConfigOf "$(var.App)" for "Release" withId "MainExeConfig" in "INSTALLFOLDER"?>
         <Component Id="MainExecutable" Directory="INSTALLFOLDER">
             <File Id="CoreExecutable" Name="WixExperimentApp.exe" Source="$(var.App)" KeyPath="yes">
                 <Shortcut Id="_Product_Shortcut_32_3120" Directory="ProgramMenuDir" Name="WixExperiment" WorkingDirectory="INSTALLDIR" Advertise="yes"/>

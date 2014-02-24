@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.ComponentModel.Composition;
     using System.ComponentModel.Composition.Hosting;
+    using System.Configuration;
     using System.IO;
     using System.Reflection;
     using PluginContract;
@@ -43,6 +44,7 @@
         {
             Console.WriteLine("Hello from the core program!");
             Console.WriteLine("Installed at " + (new UltraImportant3rdPartyClass().WhereIAm()));
+            Console.WriteLine("Configuration is "+ConfigurationManager.AppSettings["Configuration"]);
             foreach (var plugin in Plugins)
             {
                 Console.WriteLine(plugin.Greeting());

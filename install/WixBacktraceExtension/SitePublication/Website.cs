@@ -13,6 +13,8 @@
         /// Call out to MSBuild, publish site as normal
         /// <para>Expects args to be from `"C:\path\to\site.csproj" to "C:\path\to\temp" config "Release"`</para>
         /// <para>Both the source project and target directory should already exist</para>
+        /// <para>If `config` parameter is not given, it will default to "Release"</para>
+        /// <para>Will attempt to transform `web.config` using `web.{config}.config` (i.e. `web.Release.config`)</para>
         /// </summary>
         public static bool PublishSiteToFolder(QuotedArgsSplitter args, XmlWriter writer)
         {
@@ -57,7 +59,7 @@
             bpg.SetProperty("Configuration", config);
             bpg.SetProperty("Platform", "AnyCPU");
             bpg.SetProperty("DeployOnBuild", "true");
-            bpg.SetProperty("DeployTarget", "Package;_WPPCopyWebApplication");
+            bpg.SetProperty("DeployTarget", "Package");
             bpg.SetProperty("PackageLocation", @"$(OutDir)\MSDeploy\Package.zip");
             bpg.SetProperty("_PackageTempDir", tempDir + "\\");
 
@@ -70,8 +72,7 @@
 
             if (success)
             {
-                writer.WriteComment(" Publish succeeded ");
-                //File.AppendAllText(@"C:\temp\log.txt", "\r\nOK, in " + tempDir);
+                writer.WriteComment(" Publish succeeded, logs in " + tempDir.Replace("--", " - -"));
             }
             else
             {

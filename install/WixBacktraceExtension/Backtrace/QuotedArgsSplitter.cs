@@ -42,12 +42,30 @@
         public Dictionary<string, string> NamedArguments { get; protected set; }
 
         /// <summary>
-        /// Look up a named argument, with a default value if argument no provided
+        /// Look up a named argument, with a default value if argument not provided
         /// </summary>
         public string WithDefault(string key, string defaultValue)
         {
             if (NamedArguments.ContainsKey(key)) return NamedArguments[key];
             return defaultValue;
+        }
+
+        /// <summary>
+        /// Look up a named argument, with an exception thrown if argument not provided
+        /// </summary>
+        public string Required(string key)
+        {
+            if (NamedArguments.ContainsKey(key)) return NamedArguments[key];
+            throw new Exception("Expected argument named \"" + key + "\", but it was missing");
+        }
+
+        /// <summary>
+        /// Return the primary argument, with an exception thrown if argument not provided
+        /// </summary>
+        public string PrimaryRequired()
+        {
+            if (string.IsNullOrWhiteSpace(Primary)) throw new Exception("Expected primary argument, but it was missing");
+            return Primary;
         }
     }
 }

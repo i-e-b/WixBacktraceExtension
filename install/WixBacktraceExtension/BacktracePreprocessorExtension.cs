@@ -7,6 +7,7 @@
     using System.Reflection;
     using System.Xml;
     using Backtrace;
+    using global::WixBacktraceExtension.Configuration;
     using SitePublication;
     using Microsoft.Tools.WindowsInstallerXml;
 
@@ -16,25 +17,8 @@
     public class BacktracePreprocessorExtension : PreprocessorExtension
     {
         private List<string> _componentsGenerated;
+        public const string ComponentTemplate = @"<Component Id='{0}' Directory='{1}'><File Id='{2}' Source='{3}' KeyPath='yes'/></Component>";
         public override string[] Prefixes { get { return new[] { "publish", "build", "include" }; } }
-
-        /// <summary>
-        /// Startup actions.
-        /// </summary>
-        public override void InitializePreprocess()
-        {
-            base.InitializePreprocess();
-            _componentsGenerated = new List<string>();
-        }
-
-        /// <summary>
-        /// Actions performed once XML has been finally generated, before WiX project is compiled
-        /// </summary>
-        public override void FinalizePreprocess()
-        {
-            base.FinalizePreprocess();
-            _componentsGenerated.Clear();
-        }
 
         /// <summary>
         /// Prefixed variables, called like $(prefix.name)
@@ -66,7 +50,7 @@
             switch (prefix)
             {
                 case "build":
-                    return BuildComponents(pragma, cleanArgs, writer);
+                    return BuildActions(pragma, cleanArgs, writer);
 
                 case "include":
                     return ReferenceComponents(pragma, cleanArgs, writer);
@@ -77,6 +61,39 @@
                 default:
                     return false;
             }
+        }
+
+        bool BuildActions(string pragma, QuotedArgsSplitter cleanArgs, XmlWriter writer)
+        {
+            switch (pragma)
+            {
+                case "componentsFor":
+                    return BuildComponents(cleanArgs, writer);
+
+                case "transformConfigOf":
+                    return TransformConfiguration(cleanArgs, writer);
+
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Startup actions.
+        /// </summary>
+        public override void InitializePreprocess()
+        {
+            base.InitializePreprocess();
+            _componentsGenerated = new List<string>();
+        }
+
+        /// <summary>
+        /// Actions performed once XML has been finally generated, before WiX project is compiled
+        /// </summary>
+        public override void FinalizePreprocess()
+        {
+            base.FinalizePreprocess();
+            _componentsGenerated.Clear();
         }
 
         static bool PublishWebProject(string command, QuotedArgsSplitter args, XmlWriter writer)
@@ -110,18 +127,53 @@
             return true;
         }
 
-        bool BuildComponents(string command, QuotedArgsSplitter args, XmlWriter writer)
-        {
-            var componentTemplate =
-@"<Component Id='{0}' Directory='{1}'>
-    <File Id='{2}' Source='{3}' KeyPath='yes'/>
-</Component>"
-                .Replace("'", "\"");
 
-            if (command != "componentsFor") return false;
+        /// <summary>
+        /// Build file components for a .Net app.config file.
+        /// <para> </para>
+        /// argument syntax is `build.transformConfigOf "c:\path\to\assembly.exe" for "Release" withId "MyComponentId" in "InstallDirID"`.
+        /// The install directory should be declared in the .wxs file.
+        /// <para> </para>
+        /// Default `for` is "Release", default `in` is "INSTALLFOLDER". All other parameters must be supplied.
+        /// </summary>
+        bool TransformConfiguration(QuotedArgsSplitter args, XmlWriter writer)
+        {
+            var target = args.PrimaryRequired() + ".config";
+            var directory = args.WithDefault("in", "INSTALLFOLDER");
+            var config = args.WithDefault("for", "Release");
+            var componentId = args.Required("withId");
+
+            var transformPath = Path.Combine(Path.GetDirectoryName(target) ?? "", "App." + config + ".config");
+            var original = target + ".original";
+
+            if (!File.Exists(target)) throw new Exception("Expected to find \""+target+"\" but it was missing");
+            if (!File.Exists(transformPath)) throw new Exception("Expected to find transform at \"" + transformPath + "\" but it was missing");
+
+            File.Copy(target, original, true);
+            ConfigTransform.Apply(original, transformPath, target);
+
+            writer.WriteRaw(String.Format(ComponentTemplate,
+                componentId,
+                directory,
+                "file_"+componentId,
+                target
+                ));
+
+            return true;
+        }
+
+        /// <summary>
+        /// Build file components for a .Net assembly's dependencies.
+        /// <para>This DOES NOT include the target assembly itself.</para>
+        /// </summary>
+        /// <param name="args">argument syntax is `build.componentsFor "c:\path\to\assembly.exe" in "InstallDirID"`. The install directory should be declared in the .wxs file.</param>
+        /// <param name="writer">output writer</param>
+        bool BuildComponents(QuotedArgsSplitter args, XmlWriter writer)
+        {
+            var target = args.PrimaryRequired();
             var directory = args.WithDefault("in", "INSTALLFOLDER");
 
-            var dependencies = new ReferenceBuilder(Assembly.ReflectionOnlyLoadFrom(args.Primary)).NonGacDependencies().ToList();
+            var dependencies = new ReferenceBuilder(Assembly.ReflectionOnlyLoadFrom(target)).NonGacDependencies().ToList();
 
             foreach (var dependencyKey in dependencies)
             {
@@ -132,7 +184,7 @@
                 if (_componentsGenerated.Contains(dependency)) continue;
                 _componentsGenerated.Add(dependency);
 
-                writer.WriteRaw(String.Format(componentTemplate,
+                writer.WriteRaw(String.Format(ComponentTemplate,
                     AssemblyKey.ComponentId(dependency),
                     directory,
                     AssemblyKey.FileId(dependency),

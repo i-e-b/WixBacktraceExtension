@@ -4,7 +4,7 @@
     using System.IO;
     using System.Reflection;
     using NUnit.Framework;
-    using WixBacktraceExtension.ConfigTransform;
+    using WixBacktraceExtension.Configuration;
 
     [TestFixture]
     public class ConfigTransformTests
