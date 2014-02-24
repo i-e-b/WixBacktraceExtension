@@ -127,5 +127,7 @@ in WiX when you re-arrange your content files!
   (see the `OptionalPlugin` feature for an example)
 * The `components.publishedWebsiteIn` pragma *compiles and publishes* the target project, so you must have
   MSBuild and .Net compiler components installed (this should be the case if you have Visual Studio installed).
+* Files in the site root are generated with guessable names: `web.config` will have file `{prefix}_web_config`
+  and component `{prefix}_component_web_config`. This is to enable post-install changes (see the example project).
 
 

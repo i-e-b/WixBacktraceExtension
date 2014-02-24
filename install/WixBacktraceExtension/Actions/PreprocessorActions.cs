@@ -63,7 +63,16 @@
             var prefix = args.WithDefault("inDirectoriesWithPrefix", "").TrimEnd('_');
             var root = args.Required("rootDirectory");
 
-            WritePublishedFilesInDirectory(writer, target, root);
+            // Special treatment for top-level files:
+            foreach (var filePath in Directory.GetFiles(target, "*.*", SearchOption.TopDirectoryOnly))
+            {
+                var sanitisedName = Path.GetFileName(filePath).FilterJunk();
+                var uniqueComponentId = prefix + "_component_" + sanitisedName;
+                var uniqueFileId = prefix + "_" + sanitisedName;
+                var guid = Guid.NewGuid().ToString();
+                writer.WriteRaw(String.Format(ComponentTemplate, uniqueComponentId, guid, root, uniqueFileId, filePath));
+            }
+
             BuildSiteComponentsRecursive(target, target, prefix, writer);
 
             return true;
@@ -75,8 +84,7 @@
             {
                 var directoryId = dir.Replace(baseDir, prefix).FilterJunk().ToUpperInvariant();
 
-                WritePublishedFilesInDirectory(writer, dir, directoryId);
-                BuildSiteComponentsRecursive(baseDir, dir, prefix, writer);
+                WritePublishedFilesInDirectory(writer, dir, directoryId);                BuildSiteComponentsRecursive(baseDir, dir, prefix, writer);
             }
         }
 

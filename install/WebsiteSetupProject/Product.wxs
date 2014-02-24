@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
-     xmlns:iis="http://schemas.microsoft.com/wix/IIsExtension">
+     xmlns:iis="http://schemas.microsoft.com/wix/IIsExtension"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+
     <?include $(sys.CURRENTDIR)Definitions.wxi ?>
     <?define PublishTemp=$(publish.tempDirectory)?>
     <?pragma publish.webSiteProject "$(var.SiteProject)" to "$(var.PublishTemp)" for "Release"?>
@@ -15,6 +17,9 @@
             <Feature Id="WebSiteFeature" Title="WebsiteSetupProject" Description="A WiX installer for a web site" Level="1">
                 <ComponentGroupRef Id="IisWebSiteSetup" />
                 <ComponentGroupRef Id="WebsiteContent" />
+
+                <!-- Install-time changes: -->
+                <ComponentRef Id="ChangeConfig"/>
             </Feature>
 
             <Feature Id="PluginFeature" Title="Optional Plugin" Description="An optional plugin that adds more greetings" Level="4" Absent="allow" AllowAdvertise="no" InstallDefault="followParent">
@@ -55,12 +60,24 @@
     </Fragment>
 
     <Fragment>
+
         <ComponentGroup Id="WebsiteContent">
             <!-- Add published site files -->
             <!-- the pragma below sets all the correct directories, so we must NOT have a directory on the component group -->
             <?pragma components.publishedWebsiteIn "$(var.PublishTemp)" inDirectoriesWithPrefix "SITE" rootDirectory "SITE_INSTALLFOLDER" ?>
         </ComponentGroup>
 
+        <!-- Example of an install-time change to installed website, using built-in WiX Utils extension -->
+        <Component Id="ChangeConfig" Guid="58FC4D11-CF02-4406-89CF-563BEF116707" Directory='SITE_INSTALLFOLDER' >
+            <!-- The file with id `SITE_Web_config` will have been added by the `components.publishedWebsiteIn` pragma -->
+            <CreateFolder/>
+
+            <util:XmlFile Id="_Product_XmlFile_64_5013" Action="setValue" Permanent="yes" File="[#SITE_Web_config]"
+                 ElementPath="/configuration/appSettings/add[\[]@key='ReplaceAtInstall'[\]]" Name="value"
+                 Value="I have been replaced! Installed to [SITE_INSTALLFOLDER]" />
+        </Component>
+
+        <!-- Standard IIS setup with WiX built-in IIS extension -->
         <ComponentGroup Id="IisWebSiteSetup" Directory="SITE_INSTALLFOLDER">
             <!-- IIS Site Configuration -->
             <Component Id="IisSiteComponent" Guid="9A20563B-694A-497D-B8C9-A6851A2D288B" KeyPath="yes">

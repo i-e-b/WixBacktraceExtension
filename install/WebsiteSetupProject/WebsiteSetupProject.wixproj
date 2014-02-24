@@ -52,8 +52,12 @@
     <Content Include="License.rtf" />
   </ItemGroup>
   <ItemGroup>
+    <WixExtension Include="WixUtilExtension">
+      <HintPath>$(WixExtDir)\WixUtilExtension.dll</HintPath>
+      <Name>WixUtilExtension</Name>
+    </WixExtension>
     <WixExtension Include="WixBacktraceExtension">
-      <HintPath>..\WixBacktraceExtension\bin\WixBacktraceExtension.dll</HintPath>
+      <HintPath>..\..\_BacktraceExtension\WixBacktraceExtension.dll</HintPath>
       <Name>WixBacktraceExtension</Name>
     </WixExtension>
     <WixExtension Include="WixUIExtension">
