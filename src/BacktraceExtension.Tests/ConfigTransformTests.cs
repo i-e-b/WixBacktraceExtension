@@ -29,6 +29,7 @@
 
             Assert.That(File.Exists(_targetPath), Is.True);
             var result = File.ReadAllText(_targetPath);
+
             Assert.That(result, Contains.Substring("CORRECT"));
             Assert.That(result, Is.Not.StringContaining("WRONG"));
 
@@ -48,7 +49,7 @@
         [Test]
         public void inaccessible_target_throws_exception()
         {
-            Assert.Throws<ArgumentException>(() => ConfigTransform.Apply(_srcPath, _transformPath, "booga"));
+            Assert.Throws<ArgumentException>(() => ConfigTransform.Apply(_srcPath, _transformPath, "\\INVISIBULSHARE\booga"));
         }
 
 

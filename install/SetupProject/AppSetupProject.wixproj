@@ -57,7 +57,7 @@
       <Name>WixUIExtension</Name>
     </WixExtension>
     <WixExtension Include="WixBacktraceExtension">
-      <HintPath>..\WixBacktraceExtension\bin\Debug\WixBacktraceExtension.dll</HintPath>
+      <HintPath>..\WixBacktraceExtension\bin\WixBacktraceExtension.dll</HintPath>
       <Name>WixBacktraceExtension</Name>
     </WixExtension>
   </ItemGroup>
