@@ -41,6 +41,11 @@ Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "WebsiteSetupProject", "inst
 		{72FDD07A-B1D3-41DD-8465-DEC1CB704728} = {72FDD07A-B1D3-41DD-8465-DEC1CB704728}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{D9E1E326-5201-45DB-B986-719BFD8E3AB4}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

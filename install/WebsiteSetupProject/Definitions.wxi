@@ -2,4 +2,5 @@
 <Include>
     <!-- Principal outputs for the projects -->
     <?define Site="$(var.SampleMvcApplication.TargetPath)" ?>
+    <?define SiteProject="$(var.SampleMvcApplication.ProjectPath)" ?>
 </Include>

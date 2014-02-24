@@ -31,6 +31,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Build" />
+    <Reference Include="Microsoft.Build.Engine" />
+    <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="Microsoft.Web.XmlTransform">
+      <HintPath>..\..\packages\Microsoft.Web.Xdt.1.0.0\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.XML" />
@@ -40,18 +46,25 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyKey.cs" />
+    <Compile Include="ConfigTransform.cs" />
+    <Compile Include="DummyTransformLogger.cs" />
     <Compile Include="QuotedArgsSplitter.cs" />
     <Compile Include="ReferenceBuilder.cs" />
     <Compile Include="WixBacktraceExtension.cs" />
     <Compile Include="BacktracePreprocessorExtension.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
+  <!-- ILMerge to make including this plugin nice and simple -->
+  <UsingTask TaskName="ILMerge.MSBuild.Tasks.ILMerge" AssemblyFile="..\..\packages\ILMerge.MSBuild.Tasks.1.0.0.3\tools\ILMerge.MSBuild.Tasks.dll" />
+  <ItemGroup>
+    <MergeAsm Include="$(TargetDir)\WixBacktraceExtension.dll" />
+    <MergeAsm Include="$(TargetDir)\Microsoft.Web.XmlTransform.dll" />
+  </ItemGroup>
   <Target Name="AfterBuild">
+    <ILMerge InputAssemblies="@(MergeAsm)" OutputFile="$(TargetDir)..\WixBacktraceExtension.dll" TargetKind="Library" />
   </Target>
-  -->
 </Project>

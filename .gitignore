@@ -5,12 +5,15 @@ deploy
 *.wixproj.user
 *.suo
 *.cache
+*.pubxml
+*.pubxml.user
 ~$*
 *~
 *ReSharper*
 *.swp
 *.testsettings
 TestResults/*
+/PublishProfiles
 *.dbmdl
 Releases/2*
 *.pidb

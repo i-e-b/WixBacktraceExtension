@@ -2,15 +2,18 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
      xmlns:iis="http://schemas.microsoft.com/wix/IIsExtension">
     <?include $(sys.CURRENTDIR)Definitions.wxi ?>
+	<?define PublishTemp=$(publish.tempDirectory)?>
+	<?pragma publish.webSiteProject "$(var.SiteProject)" to "$(var.PublishTemp)" ?>
 
-	<Product Id="CBE03671-3D8E-4E95-91A3-84A9D7F18CCE" Name="WebsiteSetupProject" Language="1033" Version="1.0.0.0" Manufacturer="No one, it's software" UpgradeCode="7ddf9658-9ba6-425b-8df0-1be407846a3f">
+	<Product Id="CBE03671-3D8E-4E95-91A3-84A9D7F18CCE" Name="WebsiteSetupProject" Language="1033" Version="1.0.0.0" Manufacturer="No one, it's software" UpgradeCode="aaaa9658-9ba6-425b-8df0-1be40784aaaa">
 		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
         <MajorUpgrade DowngradeErrorMessage="A newer version of WiX Experiment is already installed." />
         <MediaTemplate EmbedCab="yes" />
 
 		<Feature Id="WebSiteFeature" Title="WebsiteSetupProject" Description="A WiX installer for a web site" Level="1">
-			<ComponentGroupRef Id="WebSiteComponents" />
+            <ComponentGroupRef Id="WebSiteComponents" />
+			<ComponentGroupRef Id="WebSiteBinaries" />
 		</Feature>
 
         <!-- Tribold specific:
@@ -43,16 +46,22 @@
             <!-- Note: Specifying the name as . breaks the link to the parent directory structure (this is a Windows Installer feature) -->
             <Directory Id="SITEROOTINSTALLFOLDER" Name=".">
                 <Directory Id="SITE_INSTALLFOLDER" Name="WixExperimentWebFolder">
-                    <Directory Id="SITE_INSTALLBINFOLDER" Name="bin" />
+                    <Directory Id="SITE_INSTALLBINFOLDER" Name="bin">
+                    </Directory>
                 </Directory>
             </Directory>
         </DirectoryRef>
     </Fragment>
 
-	<Fragment>
-		<ComponentGroup Id="WebSiteComponents" Directory="SITE_INSTALLFOLDER">
-			<!-- TODO: Publish site, add published site files -->
+    <Fragment>
+        <ComponentGroup Id="WebSiteBinaries" Directory="SITE_INSTALLBINFOLDER">
+            <!-- TODO: Publish site, add published site files -->
+             <!--<Component Id='sampleFile' Guid='66F1F5BA-A49A-47EA-B297-1A73546FC6EE'>
+                <File Id='_Product_File_56_3347' Source='C:\Temp\publishdump\bin\SampleMvcApplication.dll' KeyPath='yes'/> 
+            </Component>-->
+        </ComponentGroup>
 
+		<ComponentGroup Id="WebSiteComponents" Directory="SITE_INSTALLFOLDER">
             <!-- IIS Site Configuration -->
             <Component Id="IisSiteComponent" Guid="9A20563B-694A-497D-B8C9-A6851A2D288B" KeyPath="yes">
                 <CreateFolder />
