@@ -13,6 +13,7 @@
     public class PreprocessorActions
     {
         const string ComponentTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
+        const string ComponentCopyTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><CreateFolder/><CopyFile FileId='{3}' Id='{4}' DestinationDirectory='{2}' /></Component>";
 
         /// <summary>
         /// Build Directory nodes to match those under a given file path.
@@ -158,7 +159,8 @@
         /// <param name="componentsGenerated">mutable list of components that have been build (as they must be unique)</param>
         /// <param name="args">argument syntax is `build.componentsFor "c:\path\to\assembly.exe" in "InstallDirID"`. The install directory should be declared in the .wxs file.</param>
         /// <param name="writer">output writer</param>
-        public static bool BuildComponents(ICollection<string> componentsGenerated, QuotedArgsSplitter args, XmlWriter writer)
+        /// <param name="copyDependencies">if true, all dependencies will be copied to target folder. Otherwise, only dependencies not included elsewhere will be added.</param>
+        public static bool BuildComponents(ICollection<string> componentsGenerated, QuotedArgsSplitter args, XmlWriter writer, bool copyDependencies)
         {
             var target = args.PrimaryRequired();
             var directory = args.WithDefault("in", "INSTALLFOLDER");
@@ -171,19 +173,31 @@
 
                 // Components should be unique to the .msi (can be reset with `components.resetUniqueFilter` pragma call)
                 // Component id MUST be unique to the .msi
-                if (componentsGenerated.Contains(dependency)) continue;
-                componentsGenerated.Add(dependency);
-
-                writer.WriteRaw(String.Format(ComponentTemplate,
-                    AssemblyKey.ComponentId(dependency) + "_" + Guid.NewGuid().ToString("N"),
-                    Guid.NewGuid(),
-                    directory,
-                    AssemblyKey.FileId(dependency) + "_" + Guid.NewGuid().ToString("N"),
-                    AssemblyKey.FilePath(dependency)
-                    ));
+                if (componentsGenerated.Contains(dependency))
+                {
+                    if (copyDependencies)
+                    {
+                        WriteCopy(writer, directory, dependency);
+                    }
+                }
+                else
+                {
+                    componentsGenerated.Add(dependency);
+                    WriteOriginal(writer, dependency, directory);
+                }
             }
 
             return true;
+        }
+
+        static void WriteOriginal(XmlWriter writer, string dependency, string directory)
+        {
+            writer.WriteRaw(String.Format(ComponentTemplate, AssemblyKey.ComponentId(dependency), Guid.NewGuid(), directory, AssemblyKey.FileId(dependency), AssemblyKey.FilePath(dependency)));
+        }
+
+        static void WriteCopy(XmlWriter writer, string directory, string dependency)
+        {
+            writer.WriteRaw(String.Format(ComponentCopyTemplate, "_" + Guid.NewGuid().ToString("N"), Guid.NewGuid(), directory, AssemblyKey.FileId(dependency), "_" + Guid.NewGuid().ToString("N")));
         }
     }
 }

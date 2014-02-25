@@ -1,12 +1,12 @@
-﻿WiX Experiment
-==============
+﻿WiX Backtrace Extension
+=======================
 
-Examples of application and website deployment being built up as I learn WiX.
+An extension that helps with building installers for .Net applications and websites with WiX.
+It's like `Heat`, but simpler and more focused for .Net development.
 
-Includes a 'backtrace' extension that helps with building installers for .Net applications and websites.
+Contains examples of application and website deployment being built with the backtrace extension.
 
-
-Backtrace extension
+Usage
 -------------------
 The backtrace extension exposed several pragma directives that make building installers a lot simpler.
 
@@ -32,7 +32,7 @@ See `AppSetupProject` for details.
 
 1. Add components and features for primary output as normal (the library or executable for each .csproj).
 
-2. Include dependencies for each primary with the `components.uniqueDependenciesOf` pragma:
+2. Include dependencies for each primary with the `components.{all|unique}DependenciesOf` pragma:
 
         <ComponentGroup Id="MainExeDependencies" >
             <?pragma components.uniqueDependenciesOf "$(var.MyProject.TargetPath)" in "INSTALLFOLDER"?>
@@ -65,12 +65,13 @@ See `AppSetupProject` for details.
 ### Notes
 * `components.transformedConfigOf` will always overwrite the original \*.config file, so **always** 
   point this at the build output, not the sources.
-* `components.uniqueDependenciesOf` will create a component fo each version of a dependency
+* `components.uniqueDependenciesOf` will create a component for each version of a dependency
   only **once**. This is usually the correct behaviour for 
   primary executables and their plugins. If there are duplicate dependencies, the first call to 
   `components.uniqueDependenciesOf` gets them. You should always declare the dependencies for the 
-  main executable first, before any plugins. If you **need** to duplicate components, use
-  `<?pragma components.resetUniqueFilter?>` immediately before `components.uniqueDependenciesOf`.
+  main executable first, before any plugins. `components.allDependenciesOf` will only *store* one
+  copy of each version of a dependency, but will copy it as many times as required to deliver each
+  target its own set of dependencies.
 
 Backtracing for WebSite projects
 --------------------------------

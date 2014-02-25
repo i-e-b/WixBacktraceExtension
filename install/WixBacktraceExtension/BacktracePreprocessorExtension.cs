@@ -64,12 +64,11 @@
         {
             switch (pragma)
             {
-                case "resetUniqueFilter":
-                    componentsGenerated.Clear();
-                    return true;
+                case "allDependenciesOf":
+                    return PreprocessorActions.BuildComponents(componentsGenerated, cleanArgs, writer, copyDependencies: true);
 
                 case "uniqueDependenciesOf":
-                    return PreprocessorActions.BuildComponents(componentsGenerated, cleanArgs, writer);
+                    return PreprocessorActions.BuildComponents(componentsGenerated, cleanArgs, writer, copyDependencies: false);
 
                 case "transformedConfigOf":
                     return PreprocessorActions.TransformConfiguration(cleanArgs, writer);

@@ -75,8 +75,13 @@
 
     <Fragment>
         <ComponentGroup Id="OptionalPluginDependencies" >
-            <!-- Uncomment the line below to force duplication of contracts file (not required)
-            <?pragma components.resetUniqueFilter?> -->
+            <!--
+            This installs only the dependencies unique to the target (for hosted plugins):
+                        <?pragma components.uniqueDependenciesOf "$(var.Plugin)" in "PluginsFolder"?>
+                        
+            This installs all the dependencies for the target, regardless of their inclusion elsewhere (for multiple entry points, like side-by-side executables)
+                        <?pragma components.allDependenciesOf "$(var.Plugin)" in "PluginsFolder"?>
+            -->
             <?pragma components.uniqueDependenciesOf "$(var.Plugin)" in "PluginsFolder"?>
         </ComponentGroup>
         <Component Id="OptionalPlugin" Directory="PluginsFolder">
