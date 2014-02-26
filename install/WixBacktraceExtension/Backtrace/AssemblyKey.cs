@@ -1,19 +1,39 @@
 namespace WixBacktraceExtension.Backtrace
 {
+    using System;
+    using System.IO;
+    using System.Linq;
     using System.Reflection;
 
     /// <summary>
     /// "name, namespace, version|filepath" for an Assembly
     /// </summary>
-    public class AssemblyKey
+    public class AssemblyKey : IEquatable<AssemblyKey>
     {
+        public override int GetHashCode()
+        {
+            return (_key != null ? _key.GetHashCode() : 0);
+        }
+
         readonly string _key;
 
         public AssemblyKey(Assembly assm)
         {
-            var first = assm.FullName.IndexOf(',');
-            var second = assm.FullName.IndexOf(',', first + 1);
-            _key = assm.FullName.Substring(0, second) + "|" + assm.Location;
+            var bits = assm.FullName.Split(',');
+
+            _key = string.Join(",", bits.Take(2)) + "|" + assm.Location;
+            Version = double.Parse(string.Join(".", (bits[1].Split('=')[1]).Split('.').Take(2)));
+        }
+
+        public bool Equals(AssemblyKey other)
+        {
+            return FilePath(_key) == FilePath(other._key)
+                || ComponentId(_key) == ComponentId(other._key);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is AssemblyKey && Equals((AssemblyKey)obj);
         }
 
         public override string ToString()
@@ -46,5 +66,11 @@ namespace WixBacktraceExtension.Backtrace
             var bits = keystring.Split('|');
             return "file_" + bits[0].Replace(", Version=", "_").Replace(".", "_");
         }
+
+        /// <summary>
+        /// Major.Minor version of assembly
+        /// </summary>
+        public double Version { get; private set; }
+        public string FileName { get { return Path.GetFileName(FilePath(_key)); } }
     }
 }

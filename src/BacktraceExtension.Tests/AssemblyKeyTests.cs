@@ -17,6 +17,24 @@
         }
 
         [Test]
+        public void assembly_version_is_read()
+        {
+            var target = Assembly.GetExecutingAssembly();
+            var subject = new AssemblyKey(target);
+
+            Assert.That(subject.Version, Is.EqualTo(1.0d));
+        }
+
+        [Test]
+        public void assembly_file_name_is_read()
+        {
+            var target = Assembly.GetExecutingAssembly();
+            var subject = new AssemblyKey(target);
+
+            Assert.That(subject.FileName, Is.EqualTo("BacktraceExtension.Tests.dll"));
+        }
+
+        [Test]
         public void can_get_component_key_from_assembly_key_string()
         {
             const string keystring = @"BacktraceExtension.Tests, Version=1.0.0.0|C:\path\file.dll";

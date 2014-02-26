@@ -2,6 +2,7 @@
 {
     using System.IO;
     using System.Reflection;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Example of a chain of dependencies which are not direct dependencies
@@ -13,8 +14,10 @@
         /// </summary>
         public string WhereIAm()
         {
+            var str = JsonConvert.DeserializeAnonymousType("{\"Hello\":\"World\"}", new { Hello = "what?" });
+
             return new FilePath(Assembly.GetExecutingAssembly().Location)
-                .ToEnvironmentalPathWithoutFileName();
+                .ToEnvironmentalPathWithoutFileName() + "; Hello, " + str.Hello;
         }
     }
 }

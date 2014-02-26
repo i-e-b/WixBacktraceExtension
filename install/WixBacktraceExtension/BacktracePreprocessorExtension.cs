@@ -14,7 +14,7 @@
     /// </summary>
     public class BacktracePreprocessorExtension : PreprocessorExtension
     {
-        private List<string> _componentsGenerated;
+        private List<AssemblyKey> _componentsGenerated;
         public override string[] Prefixes { get { return new[] { "publish", "build", "components" }; } }
 
         /// <summary>
@@ -60,7 +60,7 @@
             }
         }
 
-        static bool ComponentActions(ICollection<string> componentsGenerated, string pragma, QuotedArgsSplitter cleanArgs, XmlWriter writer)
+        static bool ComponentActions(ICollection<AssemblyKey> componentsGenerated, string pragma, QuotedArgsSplitter cleanArgs, XmlWriter writer)
         {
             switch (pragma)
             {
@@ -111,7 +111,7 @@
         public override void InitializePreprocess()
         {
             base.InitializePreprocess();
-            _componentsGenerated = new List<string>();
+            _componentsGenerated = new List<AssemblyKey>();
         }
 
         /// <summary>
