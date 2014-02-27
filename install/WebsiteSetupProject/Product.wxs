@@ -104,7 +104,7 @@
             <Component Id="OptionalPluginRoot" Directory="PluginsFolder" Guid="78686C4B-D067-4510-A14B-7535A30C557E">
                 <File Id="OptionalPluginDll" Name="OptionalPlugin.dll" Source="$(var.Plugin)" KeyPath="yes"/>
             </Component>
-            <?pragma components.uniqueDependenciesOf "$(var.Plugin)" in "PluginsFolder"?>
+            <?pragma components.uniqueDependenciesOf "$(var.Plugin)" in "SITE_BIN"?>
         </ComponentGroup>
     </Fragment>
 </Wix>

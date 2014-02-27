@@ -14,8 +14,15 @@
     /// </summary>
     public class BacktracePreprocessorExtension : PreprocessorExtension
     {
-        private List<AssemblyKey> _componentsGenerated;
+        private readonly List<AssemblyKey> _componentsGenerated;
+        private readonly List<string> _pathsInstalledTo;
         public override string[] Prefixes { get { return new[] { "publish", "build", "components" }; } }
+
+        public BacktracePreprocessorExtension()
+        {
+            _componentsGenerated = new List<AssemblyKey>();
+            _pathsInstalledTo = new List<string>();
+        }
 
         /// <summary>
         /// Prefixed variables, called like $(prefix.name)
@@ -50,7 +57,7 @@
                     return BuildActions(pragma, cleanArgs, writer);
 
                 case "components":
-                    return ComponentActions(_componentsGenerated, pragma, cleanArgs, writer);
+                    return ComponentActions(pragma, cleanArgs, writer);
 
                 case "publish":
                     return PublishCommands(pragma, cleanArgs, writer);
@@ -60,21 +67,21 @@
             }
         }
 
-        static bool ComponentActions(ICollection<AssemblyKey> componentsGenerated, string pragma, QuotedArgsSplitter cleanArgs, XmlWriter writer)
+        bool ComponentActions(string pragma, QuotedArgsSplitter cleanArgs, XmlWriter writer)
         {
             switch (pragma)
             {
                 case "allDependenciesOf":
-                    return PreprocessorActions.BuildComponents(componentsGenerated, cleanArgs, writer, copyDependencies: true);
+                    return PreprocessorActions.BuildComponents(_componentsGenerated, cleanArgs, writer, _pathsInstalledTo, copyDependencies: true);
 
                 case "uniqueDependenciesOf":
-                    return PreprocessorActions.BuildComponents(componentsGenerated, cleanArgs, writer, copyDependencies: false);
+                    return PreprocessorActions.BuildComponents(_componentsGenerated, cleanArgs, writer, _pathsInstalledTo, copyDependencies: false);
 
                 case "transformedConfigOf":
                     return PreprocessorActions.TransformConfiguration(cleanArgs, writer);
 
                 case "publishedWebsiteIn":
-                    return PreprocessorActions.BuildPublishedWebsiteComponents(cleanArgs, writer);
+                    return PreprocessorActions.BuildPublishedWebsiteComponents(cleanArgs, writer, _pathsInstalledTo);
 
                 default:
                     return false;
@@ -111,7 +118,8 @@
         public override void InitializePreprocess()
         {
             base.InitializePreprocess();
-            _componentsGenerated = new List<AssemblyKey>();
+            _componentsGenerated.Clear();
+            _pathsInstalledTo.Clear();
         }
 
         /// <summary>
@@ -121,6 +129,7 @@
         {
             base.FinalizePreprocess();
             _componentsGenerated.Clear();
+            _pathsInstalledTo.Clear();
         }
     }
 }

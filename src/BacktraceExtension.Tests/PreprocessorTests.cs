@@ -23,6 +23,13 @@
         }
 
         [Test]
+        public void how_get_extension_works()
+        {
+            Assert.That(Path.GetExtension(@"C:\temp\myfile.dll"), Is.EqualTo(".dll"));
+        }
+
+
+        [Test]
         public void should_get_assembly_references ()
         {
             var result = _subject.NonGacDependencies().Select(a=>ReferenceBuilder.GuessName(a.ToString())).ToList();

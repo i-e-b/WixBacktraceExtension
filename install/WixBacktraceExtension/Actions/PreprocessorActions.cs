@@ -58,7 +58,7 @@
         /// Root directory (for files at the top level of the site folder) should be declared directly in the .wxs file and passed
         /// to this pragma in full.
         /// </summary>
-        public static bool BuildPublishedWebsiteComponents(QuotedArgsSplitter args, XmlWriter writer)
+        public static bool BuildPublishedWebsiteComponents(QuotedArgsSplitter args, XmlWriter writer, ICollection<string> writtenPaths)
         {
             var target = args.PrimaryRequired();
             var prefix = args.WithDefault("inDirectoriesWithPrefix", "").TrimEnd('_');
@@ -74,28 +74,34 @@
                 writer.WriteRaw(String.Format(ComponentTemplate, uniqueComponentId, guid, root, uniqueFileId, filePath));
             }
 
-            BuildSiteComponentsRecursive(target, target, prefix, writer);
+
+            BuildSiteComponentsRecursive(target, target, prefix, writer, writtenPaths);
 
             return true;
         }
 
-        static void BuildSiteComponentsRecursive(string baseDir, string target, string prefix, XmlWriter writer)
+        static void BuildSiteComponentsRecursive(string baseDir, string target, string prefix, XmlWriter writer, ICollection<string> writtenPaths)
         {
             foreach (var dir in Directory.GetDirectories(target))
             {
                 var directoryId = dir.Replace(baseDir, prefix).FilterJunk().ToUpperInvariant();
 
-                WritePublishedFilesInDirectory(writer, dir, directoryId);                BuildSiteComponentsRecursive(baseDir, dir, prefix, writer);
+                WritePublishedFilesInDirectory(writer, dir, directoryId, writtenPaths);                BuildSiteComponentsRecursive(baseDir, dir, prefix, writer, writtenPaths);
             }
         }
 
-        static void WritePublishedFilesInDirectory(XmlWriter writer, string dir, string directoryId)
+        static void WritePublishedFilesInDirectory(XmlWriter writer, string dir, string directoryId, ICollection<string> writtenPaths)
         {
             foreach (var filePath in Directory.GetFiles(dir, "*.*", SearchOption.TopDirectoryOnly))
             {
                 var uniqueComponentId = "publishedComponent_" + Guid.NewGuid().ToString("N");
                 var uniqueFileId = "publishedFile_" + Guid.NewGuid().ToString("N");
                 var guid = Guid.NewGuid().ToString();
+
+                var installTarget = directoryId + "/" + Path.GetFileName(filePath);
+                if (writtenPaths.Contains(installTarget)) continue;
+                writtenPaths.Add(installTarget);
+
                 writer.WriteRaw(String.Format(ComponentTemplate, uniqueComponentId, guid, directoryId, uniqueFileId, filePath));
             }
         }
@@ -160,12 +166,11 @@
         /// <param name="args">argument syntax is `build.componentsFor "c:\path\to\assembly.exe" in "InstallDirID"`. The install directory should be declared in the .wxs file.</param>
         /// <param name="writer">output writer</param>
         /// <param name="copyDependencies">if true, all dependencies will be copied to target folder. Otherwise, only dependencies not included elsewhere will be added.</param>
-        public static bool BuildComponents(ICollection<AssemblyKey> componentsGenerated, QuotedArgsSplitter args, XmlWriter writer, bool copyDependencies)
+        /// <param name="writtenPaths">Path that have files already (will be skipped), in the format `{DirectoryId}/{installed file name}`</param>
+        public static bool BuildComponents(ICollection<AssemblyKey> componentsGenerated, QuotedArgsSplitter args, XmlWriter writer, ICollection<string> writtenPaths, bool copyDependencies)
         {
             var target = args.PrimaryRequired();
             var directory = args.WithDefault("in", "INSTALLFOLDER");
-
-            var localFilesWritten = new List<string>();
 
             var dependencies = new ReferenceBuilder(Assembly.ReflectionOnlyLoadFrom(target)).NonGacDependencies().ToList();
 
@@ -176,8 +181,9 @@
             {
                 var dependency = dependencyKey.ToString();
 
-                if (localFilesWritten.Contains(dependencyKey.FileName)) continue; // can't write the same target twice.
-                localFilesWritten.Add(dependencyKey.FileName);
+                var installTarget = directory + "/" + dependencyKey.FileName;
+                if (writtenPaths.Contains(installTarget)) continue; // can't write the same target twice.
+                writtenPaths.Add(installTarget);
 
                 // Components should be unique to the .msi (can be reset with `components.resetUniqueFilter` pragma call)
                 // Component id MUST be unique to the .msi

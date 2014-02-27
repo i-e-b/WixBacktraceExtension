@@ -82,7 +82,7 @@
             This installs all the dependencies for the target, regardless of their inclusion elsewhere (for multiple entry points, like side-by-side executables)
                         <?pragma components.allDependenciesOf "$(var.Plugin)" in "PluginsFolder"?>
             -->
-            <?pragma components.uniqueDependenciesOf "$(var.Plugin)" in "PluginsFolder"?>
+            <?pragma components.uniqueDependenciesOf "$(var.Plugin)" in "INSTALLFOLDER"?>
         </ComponentGroup>
         <Component Id="OptionalPlugin" Directory="PluginsFolder">
             <File Id="OptionalPluginDll" Name="OptionalPlugin.dll" Source="$(var.Plugin)" KeyPath="yes"/>
