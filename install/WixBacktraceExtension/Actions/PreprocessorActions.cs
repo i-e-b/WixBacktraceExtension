@@ -94,8 +94,8 @@
         {
             foreach (var filePath in Directory.GetFiles(dir, "*.*", SearchOption.TopDirectoryOnly))
             {
-                var uniqueComponentId = "publishedComponent_" + Guid.NewGuid().ToString("N");
-                var uniqueFileId = "publishedFile_" + Guid.NewGuid().ToString("N");
+                var uniqueComponentId = "pubcmp_" + Guid.NewGuid().ToString("N");
+                var uniqueFileId = "pub_" + Guid.NewGuid().ToString("N");
                 var guid = Guid.NewGuid().ToString();
 
                 var installTarget = directoryId + "/" + Path.GetFileName(filePath);
@@ -181,7 +181,7 @@
             {
                 var dependency = dependencyKey.ToString();
 
-                var installTarget = directory + "/" + dependencyKey.FileName;
+                var installTarget = directory + "/" + Path.GetFileName(AssemblyKey.FilePath(dependency));
                 if (writtenPaths.Contains(installTarget)) continue; // can't write the same target twice.
                 writtenPaths.Add(installTarget);
 
@@ -206,7 +206,12 @@
 
         static void WriteOriginal(XmlWriter writer, string dependency, string directory)
         {
-            writer.WriteRaw(String.Format(ComponentTemplate, AssemblyKey.ComponentId(dependency), Guid.NewGuid(), directory, AssemblyKey.FileId(dependency), AssemblyKey.FilePath(dependency)));
+            writer.WriteRaw(String.Format(ComponentTemplate, 
+                AssemblyKey.ComponentId(dependency), 
+                Guid.NewGuid(),
+                directory,
+                AssemblyKey.FileId(dependency), 
+                AssemblyKey.FilePath(dependency)));
         }
 
         static void WriteCopy(XmlWriter writer, string directory, string dependency)
