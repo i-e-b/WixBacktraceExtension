@@ -1,5 +1,6 @@
 ﻿namespace BacktraceExtension.Tests
 {
+    using System;
     using System.IO;
     using System.Linq;
     using System.Reflection;
@@ -18,8 +19,7 @@
         [SetUp]
         public void setup()
         {
-            var assm = Assembly.ReflectionOnlyLoadFrom(@"C:\Projects\WixExperiment\src\WixExperimentApp\bin\Debug\WixExperimentApp.exe");
-            _subject = new ReferenceBuilder(assm);
+            _subject = new ReferenceBuilder(@"C:\Projects\WixExperiment\src\WixExperimentApp\bin\Debug\WixExperimentApp.exe");
         }
 
         [Test]
@@ -34,8 +34,11 @@
         {
             var result = _subject.NonGacDependencies().Select(a=>ReferenceBuilder.GuessName(a.ToString())).ToList();
 
+            Console.WriteLine(string.Join(",",result));
+
             Assert.That(result, Contains.Item("LessStupidPath"), "Missing NuGet dependency");
             Assert.That(result, Contains.Item("ThirdParty"), "Missing direct dependency");
+            Assert.That(result, Is.Not.Contains("System"), "Returned original assembly, could lead to duplicates");
             Assert.That(result, Is.Not.Contains("WixExperimentApp"), "Returned original assembly, could lead to duplicates");
         }
 

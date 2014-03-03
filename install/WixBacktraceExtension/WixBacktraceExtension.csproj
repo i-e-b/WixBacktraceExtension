@@ -37,6 +37,18 @@
     <Reference Include="Microsoft.Web.XmlTransform">
       <HintPath>..\..\packages\Microsoft.Web.Xdt.1.0.0\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
     </Reference>
+    <Reference Include="Mono.Cecil">
+      <HintPath>..\..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Mdb">
+      <HintPath>..\..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.Mdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Pdb">
+      <HintPath>..\..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.Pdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Rocks">
+      <HintPath>..\..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.Rocks.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.XML" />
@@ -66,6 +78,7 @@
   <ItemGroup>
     <MergeAsm Include="$(TargetDir)\WixBacktraceExtension.dll" />
     <MergeAsm Include="$(TargetDir)\Microsoft.Web.XmlTransform.dll" />
+    <MergeAsm Include="$(TargetDir)\Mono.Cecil.dll" />
   </ItemGroup>
   <Target Name="AfterBuild">
     <ILMerge InputAssemblies="@(MergeAsm)" OutputFile="$(TargetDir)..\WixBacktraceExtension.dll" TargetKind="Dll" />

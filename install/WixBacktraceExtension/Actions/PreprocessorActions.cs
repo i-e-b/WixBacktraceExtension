@@ -111,7 +111,7 @@
             var componentRefTemplate = @"<ComponentRef Id='{0}'/>"
                 .Replace("'", "\"");
 
-            var dependencies = new ReferenceBuilder(Assembly.ReflectionOnlyLoadFrom(args.Primary)).NonGacDependencies().ToList();
+            var dependencies = new ReferenceBuilder(args.Primary).NonGacDependencies().ToList();
 
             foreach (var dependencyKey in dependencies)
             {
@@ -172,7 +172,7 @@
             var target = args.PrimaryRequired();
             var directory = args.WithDefault("in", "INSTALLFOLDER");
 
-            var dependencies = new ReferenceBuilder(Assembly.ReflectionOnlyLoadFrom(target)).NonGacDependencies().ToList();
+            var dependencies = new ReferenceBuilder(target).NonGacDependencies().ToList();
 
             // intention: highest version first.
             dependencies.Sort((b, a) => a.Version.CompareTo(b.Version));

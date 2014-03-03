@@ -17,11 +17,12 @@ namespace WixBacktraceExtension.Backtrace
 
         readonly string _key;
 
-        public AssemblyKey(Assembly assm)
-        {
-            var bits = assm.FullName.Split(',');
+        public AssemblyKey(Assembly assm) : this(assm.Location, assm.FullName) { }
 
-            _key = string.Join(",", bits.Take(2)) + "|" + assm.Location;
+        public AssemblyKey(string filePath, string assemblyFullName)
+        {
+            var bits = assemblyFullName.Split(',');
+            _key = string.Join(",", bits.Take(2)) + "|" + filePath;
             Version = double.Parse(string.Join(".", (bits[1].Split('=')[1]).Split('.').Take(2)));
         }
 
@@ -72,5 +73,6 @@ namespace WixBacktraceExtension.Backtrace
         /// </summary>
         public double Version { get; private set; }
         public string FileName { get { return Path.GetFileName(FilePath(_key)); } }
+        public string TargetFilePath { get { return FilePath(_key); } }
     }
 }

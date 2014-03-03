@@ -4,82 +4,67 @@ namespace WixBacktraceExtension.Backtrace
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using Mono.Cecil;
 
     public class ReferenceBuilder
     {
-        readonly Assembly _assm;
+        readonly string _filePath;
 
-        public ReferenceBuilder(Assembly assm)
+        public ReferenceBuilder(string filePath)
         {
-            _assm = assm;
+            _filePath = filePath;
         }
 
         public IEnumerable<AssemblyKey> NonGacDependencies()
         {
-            var result = new HashSet<Assembly>();
-            NonGacDependencies(_assm, result);
-            return result.Select(a=> new AssemblyKey(a));
+            var result = new HashSet<AssemblyKey>();
+            NonGacDependencies(_filePath, result);
+            return result;
         }
 
-        static void NonGacDependencies(Assembly src, ISet<Assembly> dst)
+
+        static void NonGacDependencies(string srcFilePath, ISet<AssemblyKey> dst)
         {
-            foreach (var next in
-                src.GetReferencedAssemblies().Select(refd => NonGacAndReal(src, refd)).Where(assm => assm != null)
-                )
+            var basePath = Path.GetDirectoryName(srcFilePath) ?? "";
+            foreach (var next in ReferencesForAssemblyPath(srcFilePath))
             {
-                dst.Add(next);
-                NonGacDependencies(next, dst);
+                var key = Resolve(basePath, next);
+                if (key == null) continue; // we only look in the local folder and below, so we *should* miss GAC assemblies
+
+                dst.Add(key);
+                NonGacDependencies(key.TargetFilePath, dst);
             }
         }
 
-
-        static Assembly NonGacAndReal(Assembly src, AssemblyName dep)
-        {
-            try
-            {
-                Assembly real;
-                try
-                {
-                    real = Assembly.ReflectionOnlyLoad(dep.FullName);
-                }
-                catch
-                {
-                    real = LookupReferencedAssemblyInternal(src.Location, dep);
-                }
-                var location = real.Location;
-                if (real.GlobalAssemblyCache)
-                {
-                    return null;
-                }
-                if (string.IsNullOrEmpty(location))
-                {
-                    return null;
-                }
-
-                return real;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private static Assembly LookupReferencedAssemblyInternal(string basePath, AssemblyName name)
+        static AssemblyKey Resolve(string basePath, AssemblyNameReference name)
         {
             var guess = GuessName(name.FullName);
-            var directoryName = Path.GetDirectoryName(basePath) ?? basePath;
-            var dll = Path.Combine(directoryName, guess + ".dll");
-            var exe = Path.Combine(directoryName, guess + ".exe");
+
+            var dll = Directory.GetFiles(basePath, guess + ".dll", SearchOption.AllDirectories).FirstOrDefault();
+            var exe = Directory.GetFiles(basePath, guess + ".exe", SearchOption.AllDirectories).FirstOrDefault();
 
             if (File.Exists(dll))
             {
-                return Assembly.ReflectionOnlyLoadFrom(dll);
+                return new AssemblyKey(dll, name.FullName);
             }
             if (File.Exists(exe))
             {
-                return Assembly.ReflectionOnlyLoadFrom(exe);
+                return new AssemblyKey(exe, name.FullName);
             }
             return null;
+        }
+
+        static IEnumerable<AssemblyNameReference> ReferencesForAssemblyPath(string filePath)
+        {
+            try
+            {
+                var defn = AssemblyDefinition.ReadAssembly(filePath);
+                return defn.Modules.SelectMany(mod => mod.AssemblyReferences).ToList();
+            }
+            catch
+            {
+                return new AssemblyNameReference[0];
+            }
         }
 
         public static string GuessName(string fullName)
