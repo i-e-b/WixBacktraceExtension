@@ -18,10 +18,13 @@
         private readonly List<string> _pathsInstalledTo;
         public override string[] Prefixes { get { return new[] { "publish", "build", "components" }; } }
 
+        public static Guid SessionId { get; private set; }
+
         public BacktracePreprocessorExtension()
         {
             _componentsGenerated = new List<AssemblyKey>();
             _pathsInstalledTo = new List<string>();
+            SessionId = Guid.NewGuid();
         }
 
         /// <summary>
@@ -118,6 +121,7 @@
         public override void InitializePreprocess()
         {
             base.InitializePreprocess();
+            SessionId = Guid.NewGuid();
             _componentsGenerated.Clear();
             _pathsInstalledTo.Clear();
         }

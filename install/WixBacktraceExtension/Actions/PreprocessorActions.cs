@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using System.Xml;
     using global::WixBacktraceExtension.Backtrace;
     using global::WixBacktraceExtension.Configuration;
@@ -206,12 +205,33 @@
 
         static void WriteOriginal(XmlWriter writer, string dependency, string directory)
         {
+            var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
+
             writer.WriteRaw(String.Format(ComponentTemplate, 
                 AssemblyKey.ComponentId(dependency), 
                 Guid.NewGuid(),
                 directory,
-                AssemblyKey.FileId(dependency), 
-                AssemblyKey.FilePath(dependency)));
+                AssemblyKey.FileId(dependency),
+                finalLocation));
+        }
+
+
+        static string WorkAround255CharPathLimit(string src)
+        {
+            var loc = Path.GetFullPath(src);
+            var fileName = Path.GetFileName(src);
+
+            if (fileName == null) throw new Exception("Dependency had no file name?");
+
+            if (loc.Length <= 200)
+            {
+                return loc;
+            }
+
+            var dst = Path.Combine(Path.GetTempPath(), BacktracePreprocessorExtension.SessionId.ToString("N"), fileName);
+            File.Copy(src, dst);
+
+            return dst;
         }
 
         static void WriteCopy(XmlWriter writer, string directory, string dependency)
