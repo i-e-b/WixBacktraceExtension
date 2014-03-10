@@ -3,7 +3,6 @@ namespace WixBacktraceExtension.Backtrace
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Reflection;
     using Mono.Cecil;
 
     public class ReferenceBuilder
@@ -72,6 +71,12 @@ namespace WixBacktraceExtension.Backtrace
             var idx = fullName.IndexOfAny(new[] { ' ', ',' });
             if (idx < 1) return fullName;
             return fullName.Substring(0, idx);
+        }
+
+        public static AssemblyKey AssemblyKeyForFile(string filePath)
+        {
+            var defn = AssemblyDefinition.ReadAssembly(filePath);
+            return new AssemblyKey(filePath, defn.FullName);
         }
     }
 }

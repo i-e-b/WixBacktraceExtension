@@ -28,6 +28,13 @@
             Assert.That(Path.GetExtension(@"C:\temp\myfile.dll"), Is.EqualTo(".dll"));
         }
 
+        [Test]
+        public void reference_builder_can_target_single_file()
+        {
+            var key = ReferenceBuilder.AssemblyKeyForFile(Assembly.GetExecutingAssembly().Location);
+            Assert.That(key.ToString(), Is.EqualTo("BacktraceExtension.Tests, Version=1.0.0.0|" + Assembly.GetExecutingAssembly().Location));
+        }
+
 
         [Test]
         public void should_get_assembly_references ()

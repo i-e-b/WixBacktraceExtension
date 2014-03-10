@@ -5,16 +5,21 @@ An extension that helps with building installers for .Net applications and websi
 It's like `Heat`, but simpler and more focused for .Net development.
 
 Contains examples of application and website deployment being built with the backtrace extension.
+The backtrace extension exposes several pragma directives that make building installers a lot simpler.
 
-Usage
--------------------
-The backtrace extension exposed several pragma directives that make building installers a lot simpler.
+Installing
+----------
 
-The extension project *must* be referenced by the setup project, and the reference must be
-by file path, not in "Projects" (if you use the VS GUI). If you edit the .wixproj file you should see
+Add the NuGet package from https://www.nuget.org/packages/WixBacktraceExtension/
+
+`Install-Package WixBacktraceExtension`
+
+The extension dll in the solution's packages folder *must* be referenced by the setup project, and the
+reference must be by file path, not in "Projects" (if you use the VS GUI). If you edit the .wixproj
+file you should see
 
     <WixExtension Include="WixBacktraceExtension">
-      <HintPath>..\WixBacktraceExtension\bin\WixBacktraceExtension.dll</HintPath>
+      <HintPath>..\..\packages\WixBacktraceExtension.1.0.3\lib\net40\WixBacktraceExtension.dll</HintPath>
       <Name>WixBacktraceExtension</Name>
     </WixExtension>
 
@@ -23,7 +28,7 @@ by file path, not in "Projects" (if you use the VS GUI). If you edit the .wixpro
 Once this is done, you can use a `<?pragma?>` declaration to build and reference components
 for all the dependencies of a primary component. (See the example setup projects for full usage)
 
-**Important** Use the ILMerged output that is left directly in the bin folder,
+**Important** If you build from sources, use the ILMerged output that is left directly in the bin folder,
 not the unmerged one in Debug or Release.
 
 Backtracing for compiled executables
@@ -131,4 +136,11 @@ in WiX when you re-arrange your content files!
 * Files in the site root are generated with guessable names: `web.config` will have file `{prefix}_web_config`
   and component `{prefix}_component_web_config`. This is to enable post-install changes (see the example project).
 
+Bringing in floating DLLs and their dependencies
+------------------------------------------------
 
+1. Include target and dependencies with the `components.targetAnd{All|Unique}DependenciesOf` pragma:
+
+        <ComponentGroup Id="MainExeDependencies" >
+            <?pragma components.targetAndUniqueDependenciesOf "C:\work\Super.dll" in "INSTALLFOLDER"?>
+        </ComponentGroup>

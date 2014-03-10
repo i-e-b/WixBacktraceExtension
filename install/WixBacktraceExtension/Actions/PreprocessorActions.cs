@@ -166,12 +166,20 @@
         /// <param name="writer">output writer</param>
         /// <param name="copyDependencies">if true, all dependencies will be copied to target folder. Otherwise, only dependencies not included elsewhere will be added.</param>
         /// <param name="writtenPaths">Path that have files already (will be skipped), in the format `{DirectoryId}/{installed file name}`</param>
-        public static bool BuildComponents(ICollection<AssemblyKey> componentsGenerated, QuotedArgsSplitter args, XmlWriter writer, ICollection<string> writtenPaths, bool copyDependencies)
+        /// <param name="includeTarget">If true, the target will have a component generated. If false, only dependencies will get a component</param>
+        public static bool BuildComponents(ICollection<AssemblyKey> componentsGenerated, QuotedArgsSplitter args, XmlWriter writer, ICollection<string> writtenPaths,
+            bool copyDependencies, bool includeTarget)
         {
             var target = args.PrimaryRequired();
             var directory = args.WithDefault("in", "INSTALLFOLDER");
 
+
             var dependencies = new ReferenceBuilder(target).NonGacDependencies().ToList();
+
+            if (includeTarget)
+            {
+                dependencies.Add(ReferenceBuilder.AssemblyKeyForFile(target));
+            }
 
             // intention: highest version first.
             dependencies.Sort((b, a) => a.Version.CompareTo(b.Version));

@@ -75,10 +75,17 @@
             switch (pragma)
             {
                 case "allDependenciesOf":
-                    return PreprocessorActions.BuildComponents(_componentsGenerated, cleanArgs, writer, _pathsInstalledTo, copyDependencies: true);
+                    return PreprocessorActions.BuildComponents(_componentsGenerated, cleanArgs, writer, _pathsInstalledTo, copyDependencies: true, includeTarget: false);
 
                 case "uniqueDependenciesOf":
-                    return PreprocessorActions.BuildComponents(_componentsGenerated, cleanArgs, writer, _pathsInstalledTo, copyDependencies: false);
+                    return PreprocessorActions.BuildComponents(_componentsGenerated, cleanArgs, writer, _pathsInstalledTo, copyDependencies: false, includeTarget: false);
+
+
+                case "targetAndAllDependenciesOf":
+                    return PreprocessorActions.BuildComponents(_componentsGenerated, cleanArgs, writer, _pathsInstalledTo, copyDependencies: true, includeTarget: true);
+
+                case "targetAndUniqueDependenciesOf":
+                    return PreprocessorActions.BuildComponents(_componentsGenerated, cleanArgs, writer, _pathsInstalledTo, copyDependencies: false, includeTarget: true);
 
                 case "transformedConfigOf":
                     return PreprocessorActions.TransformConfiguration(cleanArgs, writer);
