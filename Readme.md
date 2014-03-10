@@ -19,7 +19,7 @@ reference must be by file path, not in "Projects" (if you use the VS GUI). If yo
 file you should see
 
     <WixExtension Include="WixBacktraceExtension">
-      <HintPath>..\..\packages\WixBacktraceExtension.1.0.3\lib\net40\WixBacktraceExtension.dll</HintPath>
+      <HintPath>..\..\packages\WixBacktraceExtension.1.0.X\lib\net40\WixBacktraceExtension.dll</HintPath>
       <Name>WixBacktraceExtension</Name>
     </WixExtension>
 
