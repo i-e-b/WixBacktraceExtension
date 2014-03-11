@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <?include $(sys.CURRENTDIR)Definitions.wxi ?>
+
+	<Fragment>
+    <ComponentGroup Id="WebsiteContent">
+      <!-- Add published site files -->
+      <!-- the pragma below sets all the correct directories, so we must NOT have a directory on the component group -->
+      <?pragma components.publishedWebsiteIn "$(var.PublishTemp)" inDirectoriesWithPrefix "SITE" rootDirectory "SITE_INSTALLFOLDER" ?>
+    </ComponentGroup>
+	</Fragment>
+</Wix>

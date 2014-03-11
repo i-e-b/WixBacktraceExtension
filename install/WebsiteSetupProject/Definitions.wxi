@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Include>
-    <!-- Principal outputs for the projects -->
-    <?define Site="$(var.SampleMvcApplication.TargetPath)" ?>
-    <?define SiteProject="$(var.SampleMvcApplication.ProjectPath)" ?>
+  <!-- Principal outputs for the projects -->
+  <?define Site="$(var.SampleMvcApplication.TargetPath)" ?>
+  <?define SiteProject="$(var.SampleMvcApplication.ProjectPath)" ?>
 
-    <?define Plugin="$(var.OptionalPlugin.TargetPath)" ?>
+  <?define Plugin="$(var.OptionalPlugin.TargetPath)" ?>
+  <?define PublishTemp=$(publish.tempDirectory)?>
 </Include>

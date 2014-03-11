@@ -36,7 +36,7 @@
         {
             if (prefix != "publish" || name != "tempDirectory") return null; // making temp directories is all we do here.
 
-            var target = Path.Combine(Path.GetTempPath(), "publish_" + Guid.NewGuid());
+            var target = Path.Combine(Path.GetTempPath(), "publish_" + SessionId);
             Directory.CreateDirectory(target);
 
             return target;
@@ -128,9 +128,6 @@
         public override void InitializePreprocess()
         {
             base.InitializePreprocess();
-            SessionId = Guid.NewGuid();
-            _componentsGenerated.Clear();
-            _pathsInstalledTo.Clear();
         }
 
         /// <summary>
@@ -139,8 +136,6 @@
         public override void FinalizePreprocess()
         {
             base.FinalizePreprocess();
-            _componentsGenerated.Clear();
-            _pathsInstalledTo.Clear();
         }
     }
 }

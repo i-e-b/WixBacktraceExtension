@@ -4,7 +4,6 @@
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
     <?include $(sys.CURRENTDIR)Definitions.wxi ?>
-    <?define PublishTemp=$(publish.tempDirectory)?>
     <?pragma publish.webSiteProject "$(var.SiteProject)" to "$(var.PublishTemp)" for "Release"?>
 
     <Product Id="CBE03671-3D8E-4E95-91A3-84A9D7F18CCE" Name="WebsiteSetupProject" Language="1033" Version="1.0.0.0" Manufacturer="No one, it's software" UpgradeCode="aaaa9658-9ba6-425b-8df0-1be40784aaaa">
@@ -60,13 +59,6 @@
     </Fragment>
 
     <Fragment>
-
-        <ComponentGroup Id="WebsiteContent">
-            <!-- Add published site files -->
-            <!-- the pragma below sets all the correct directories, so we must NOT have a directory on the component group -->
-            <?pragma components.publishedWebsiteIn "$(var.PublishTemp)" inDirectoriesWithPrefix "SITE" rootDirectory "SITE_INSTALLFOLDER" ?>
-        </ComponentGroup>
-
         <!-- Example of an install-time change to installed website, using built-in WiX Utils extension -->
         <Component Id="ChangeConfig" Guid="58FC4D11-CF02-4406-89CF-563BEF116707" Directory='SITE_INSTALLFOLDER' >
             <!-- The file with id `SITE_Web_config` will have been added by the `components.publishedWebsiteIn` pragma -->
@@ -99,12 +91,4 @@
         </ComponentGroup>
     </Fragment>
 
-    <Fragment>
-        <ComponentGroup Id="OptionalPlugin" >
-            <Component Id="OptionalPluginRoot" Directory="PluginsFolder" Guid="78686C4B-D067-4510-A14B-7535A30C557E">
-                <File Id="OptionalPluginDll" Name="OptionalPlugin.dll" Source="$(var.Plugin)" KeyPath="yes"/>
-            </Component>
-            <?pragma components.uniqueDependenciesOf "$(var.Plugin)" in "SITE_BIN"?>
-        </ComponentGroup>
-    </Fragment>
 </Wix>

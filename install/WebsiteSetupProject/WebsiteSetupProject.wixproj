@@ -21,6 +21,8 @@
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Components\Plugin.wxs" />
+    <Compile Include="Components\WebsiteContent.wxs" />
     <Compile Include="Product.wxs" />
   </ItemGroup>
   <ItemGroup>
@@ -44,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Images\" />
+    <Folder Include="Components" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Definitions.wxi" />
