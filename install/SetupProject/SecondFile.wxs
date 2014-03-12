@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <?include $(sys.CURRENTDIR)Definitions.wxi ?>
+	<Fragment>
+		<!-- This is here to conflict with `Product.wxs`, to demonstrate that uniqueDependencies works across multiple files. -->
+
+    <ComponentGroup Id="OptionalPluginDependenciesDuplicate" >
+      <?pragma components.uniqueDependenciesOf "$(var.Plugin)" in "INSTALLFOLDER"?>
+    </ComponentGroup>
+	</Fragment>
+</Wix>

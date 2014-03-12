@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyKeyTests.cs" />
+    <Compile Include="LittleTests.cs" />
     <Compile Include="PreprocessorTests.cs" />
     <Compile Include="ConfigTransformTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

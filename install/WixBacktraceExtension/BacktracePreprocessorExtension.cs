@@ -1,6 +1,5 @@
 ﻿namespace WixBacktraceExtension
 {
-    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Xml;
@@ -18,13 +17,10 @@
         private readonly List<string> _pathsInstalledTo;
         public override string[] Prefixes { get { return new[] { "publish", "build", "components" }; } }
 
-        public static Guid SessionId { get; private set; }
-
         public BacktracePreprocessorExtension()
         {
             _componentsGenerated = new List<AssemblyKey>();
             _pathsInstalledTo = new List<string>();
-            SessionId = Guid.NewGuid();
         }
 
         /// <summary>
@@ -36,7 +32,7 @@
         {
             if (prefix != "publish" || name != "tempDirectory") return null; // making temp directories is all we do here.
 
-            var target = Path.Combine(Path.GetTempPath(), "publish_" + SessionId);
+            var target = Path.Combine(Session.TempFolder(), "publishoutput");
             Directory.CreateDirectory(target);
 
             return target;
@@ -79,7 +75,6 @@
 
                 case "uniqueDependenciesOf":
                     return PreprocessorActions.BuildComponents(_componentsGenerated, cleanArgs, writer, _pathsInstalledTo, copyDependencies: false, includeTarget: false);
-
 
                 case "targetAndAllDependenciesOf":
                     return PreprocessorActions.BuildComponents(_componentsGenerated, cleanArgs, writer, _pathsInstalledTo, copyDependencies: true, includeTarget: true);
@@ -127,6 +122,7 @@
         /// </summary>
         public override void InitializePreprocess()
         {
+            Session.Load(_componentsGenerated, _pathsInstalledTo);
             base.InitializePreprocess();
         }
 
@@ -135,6 +131,7 @@
         /// </summary>
         public override void FinalizePreprocess()
         {
+            Session.Save(_componentsGenerated, _pathsInstalledTo);
             base.FinalizePreprocess();
         }
     }

@@ -16,5 +16,13 @@
             }
             return dst.ToString();
         }
+
+        public static string LastPathElement(this string path)
+        {
+            var try1 = Path.GetFileNameWithoutExtension(path);
+            if (!string.IsNullOrEmpty(try1)) return try1;
+
+            return Path.GetFileNameWithoutExtension(Path.GetDirectoryName(path));
+        }
     }
 }

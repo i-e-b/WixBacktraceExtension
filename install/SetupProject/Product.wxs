@@ -19,6 +19,7 @@
             <Feature Id="PluginFeature" Title="Optional Plugin" Description="An optional plugin that adds more greetings" Level="4" Absent="allow" AllowAdvertise="no" InstallDefault="followParent">
                 <ComponentRef Id="OptionalPlugin"/>
                 <ComponentGroupRef Id="OptionalPluginDependencies" />
+                <ComponentGroupRef Id="OptionalPluginDependenciesDuplicate" />
             </Feature>
         </Feature>
 

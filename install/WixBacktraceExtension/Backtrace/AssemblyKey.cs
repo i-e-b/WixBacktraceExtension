@@ -26,6 +26,11 @@ namespace WixBacktraceExtension.Backtrace
             Version = double.Parse(string.Join(".", (bits[1].Split('=')[1]).Split('.').Take(2)));
         }
 
+        public AssemblyKey(string key)
+        {
+            _key = key;
+        }
+
         public bool Equals(AssemblyKey other)
         {
             return FilePath(_key) == FilePath(other._key)

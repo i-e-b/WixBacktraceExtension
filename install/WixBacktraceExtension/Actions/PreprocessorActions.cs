@@ -236,7 +236,7 @@
                 return loc;
             }
 
-            var dst = Path.Combine(Path.GetTempPath(), BacktracePreprocessorExtension.SessionId.ToString("N"), fileName);
+            var dst = Path.Combine(Session.TempFolder(), "longpath", fileName);
             File.Copy(src, dst);
 
             return dst;
