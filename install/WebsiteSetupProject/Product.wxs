@@ -4,7 +4,6 @@
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
 
     <?include $(sys.CURRENTDIR)Definitions.wxi ?>
-    <?pragma publish.webSiteProject "$(var.SiteProject)" to "$(var.PublishTemp)" for "Release"?>
 
     <Product Id="CBE03671-3D8E-4E95-91A3-84A9D7F18CCE" Name="WebsiteSetupProject" Language="1033" Version="1.0.0.0" Manufacturer="No one, it's software" UpgradeCode="aaaa9658-9ba6-425b-8df0-1be40784aaaa">
         <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />

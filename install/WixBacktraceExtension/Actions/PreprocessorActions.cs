@@ -12,7 +12,6 @@
     public class PreprocessorActions
     {
         const string ComponentTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
-        const string ComponentCopyTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><CreateFolder/><CopyFile FileId='{3}' Id='{4}' DestinationDirectory='{2}' /></Component>";
 
         /// <summary>
         /// Build Directory nodes to match those under a given file path.
@@ -173,7 +172,6 @@
             var target = args.PrimaryRequired();
             var directory = args.WithDefault("in", "INSTALLFOLDER");
 
-
             var dependencies = new ReferenceBuilder(target).NonGacDependencies().ToList();
 
             if (includeTarget)
@@ -216,13 +214,24 @@
             var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
 
             writer.WriteRaw(String.Format(ComponentTemplate, 
-                AssemblyKey.ComponentId(dependency), 
+                AssemblyKey.ComponentId(dependency),
                 Guid.NewGuid(),
                 directory,
                 AssemblyKey.FileId(dependency),
                 finalLocation));
         }
 
+        static void WriteCopy(XmlWriter writer, string directory, string dependency)
+        {
+            var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
+
+            writer.WriteRaw(String.Format(ComponentTemplate,
+                AssemblyKey.ComponentId(dependency) + "_" + Guid.NewGuid().ToString("N"),
+                Guid.NewGuid(),
+                directory,
+                AssemblyKey.FileId(dependency) + "_" + Guid.NewGuid().ToString("N"),
+                finalLocation));
+        }
 
         static string WorkAround255CharPathLimit(string src)
         {
@@ -237,14 +246,9 @@
             }
 
             var dst = Path.Combine(Session.TempFolder(), "longpath", fileName);
-            File.Copy(src, dst);
+            if (!File.Exists(dst)) File.Copy(src, dst);
 
             return dst;
-        }
-
-        static void WriteCopy(XmlWriter writer, string directory, string dependency)
-        {
-            writer.WriteRaw(String.Format(ComponentCopyTemplate, "_" + Guid.NewGuid().ToString("N"), Guid.NewGuid(), directory, AssemblyKey.FileId(dependency), "_" + Guid.NewGuid().ToString("N")));
         }
     }
 }

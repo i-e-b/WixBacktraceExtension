@@ -6,6 +6,7 @@
 
     <ComponentGroup Id="OptionalPluginDependenciesDuplicate" >
       <?pragma components.uniqueDependenciesOf "$(var.Plugin)" in "INSTALLFOLDER"?>
+      <?pragma components.allDependenciesOf "$(var.Plugin)" in "OTHERFOLDER"?>
     </ComponentGroup>
 	</Fragment>
 </Wix>
