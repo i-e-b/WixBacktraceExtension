@@ -213,11 +213,11 @@
         {
             var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
 
-            writer.WriteRaw(String.Format(ComponentTemplate, 
-                AssemblyKey.ComponentId(dependency),
+            writer.WriteRaw(String.Format(ComponentTemplate,
+                StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency)),
                 Guid.NewGuid(),
                 directory,
-                AssemblyKey.FileId(dependency),
+                StringExtensions.LimitRight(70, AssemblyKey.FileId(dependency)),
                 finalLocation));
         }
 
@@ -226,10 +226,10 @@
             var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
 
             writer.WriteRaw(String.Format(ComponentTemplate,
-                AssemblyKey.ComponentId(dependency) + "_" + Guid.NewGuid().ToString("N"),
+                StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency) + "_" + Guid.NewGuid().ToString("N")),
                 Guid.NewGuid(),
                 directory,
-                AssemblyKey.FileId(dependency) + "_" + Guid.NewGuid().ToString("N"),
+                StringExtensions.LimitRight(70, AssemblyKey.FileId(dependency) + "_" + Guid.NewGuid().ToString("N")),
                 finalLocation));
         }
 

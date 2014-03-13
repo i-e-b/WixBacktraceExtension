@@ -24,5 +24,10 @@
 
             return Path.GetFileNameWithoutExtension(Path.GetDirectoryName(path));
         }
+
+        public static string LimitRight(int numChars, string src)
+        {
+            return src.Length <= numChars ? src : src.Substring(src.Length - numChars);
+        }
     }
 }
