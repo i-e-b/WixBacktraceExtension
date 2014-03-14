@@ -29,5 +29,9 @@
         {
             return src.Length <= numChars ? src : src.Substring(src.Length - numChars);
         }
+        public static string LimitRight(this string src, int numChars)
+        {
+            return LimitRight(numChars, src);
+        }
     }
 }

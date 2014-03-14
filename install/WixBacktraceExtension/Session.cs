@@ -16,7 +16,7 @@
     /// means we can't do our unique item tracing between source files easily. To remedy,
     /// we save our data across sessions with a short timeout
     /// </remarks>
-    public class Session
+    public static class Session
     {
         /// <summary>
         /// Give a temp directory for this project
@@ -25,8 +25,8 @@
         {
             var working = Directory.GetCurrentDirectory(); // Wix puts the working directory to the .wixproj location
             var key = working.CRC32();
-            var name = working.LastPathElement();
-            return Path.Combine(Path.GetTempPath(), "BacktraceTemp_" + name + "_" + key.ToString("X"));
+            var name = working.LastPathElement().LimitRight(15);
+            return Path.Combine(Path.GetTempPath(), "Backtrace_" + name + "_" + key.ToString("X"));
         }
 
         public static void Save(List<AssemblyKey> componentsGenerated, List<string> pathsInstalledTo)
@@ -59,10 +59,12 @@
             {
                 data = (SessionData)ser.Deserialize(fs);
             }
-            if (DateTime.UtcNow - data.WriteTime > TimeSpan.FromSeconds(30)) // time allowed between the end of one session and the start of another.
+
+            if (NoBuildOutputs() || SessionIsTooOld(data))
             {
-                // Too old, start again.
+                // First session, start again.
                 DeleteDirectory(TempFolder());
+                if (!Directory.Exists(TempFolder())) Directory.CreateDirectory(TempFolder());
                 return;
             }
 
@@ -76,6 +78,27 @@
                 
             }
         }
+
+        static bool SessionIsTooOld(SessionData sessionData)
+        {
+            return DateTime.UtcNow - sessionData.WriteTime > TimeSpan.FromMinutes(5);
+        }
+
+        /// <summary>
+        /// If there are no build outputs, we are in the first call to "candle.exe" and we should clear the temp output
+        /// <para>Otherwise, we are a chained output and we should just read the session</para>
+        /// </summary>
+        static bool NoBuildOutputs()
+        {
+            var dir = Path.Combine(Directory.GetCurrentDirectory(), "obj");
+            var dirs = Directory.EnumerateDirectories(dir).Select(p => new DirectoryInfo(p)).ToList();
+            dirs.Sort((a, b) => b.LastWriteTimeUtc.CompareTo(a.LastWriteTimeUtc));
+
+            if (!dirs.Any()) return true;
+
+            return !Directory.GetFiles(dirs.First().FullName, "*.wixobj", SearchOption.AllDirectories).Any();
+        }
+
 
         /// <summary>
         /// A strong recursive directory delete.

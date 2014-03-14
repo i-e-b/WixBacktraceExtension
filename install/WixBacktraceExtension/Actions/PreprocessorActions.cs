@@ -11,7 +11,8 @@
 
     public class PreprocessorActions
     {
-        const string ComponentTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
+        protected static readonly object Lock = new object();
+        const string ComponentTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><File Id='{3}' Source='{4}' KeyPath='no'/></Component>";
 
         /// <summary>
         /// Build Directory nodes to match those under a given file path.
@@ -235,20 +236,26 @@
 
         static string WorkAround255CharPathLimit(string src)
         {
-            var loc = Path.GetFullPath(src);
-            var fileName = Path.GetFileName(src);
-
-            if (fileName == null) throw new Exception("Dependency had no file name?");
-
-            if (loc.Length <= 200)
+            lock (Lock)
             {
-                return loc;
+                var loc = Path.GetFullPath(src);
+                var fileName = Path.GetFileName(src);
+
+                if (fileName == null) throw new Exception("Dependency had no file name?");
+
+                if (loc.Length <= 200)
+                {
+                    return loc;
+                }
+
+                var dir = Path.Combine(Session.TempFolder(), "longpath");
+                if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                var dst = Path.Combine(dir, fileName);
+
+                if (!File.Exists(dst)) File.Copy(src, dst);
+
+                return dst;
             }
-
-            var dst = Path.Combine(Session.TempFolder(), "longpath", fileName);
-            if (!File.Exists(dst)) File.Copy(src, dst);
-
-            return dst;
         }
     }
 }

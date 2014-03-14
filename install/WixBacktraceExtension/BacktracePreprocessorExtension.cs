@@ -1,5 +1,6 @@
 ﻿namespace WixBacktraceExtension
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Xml;
@@ -49,20 +50,28 @@
         /// <returns></returns>
         public override bool ProcessPragma(SourceLineNumberCollection sourceLineNumbers, string prefix, string pragma, string args, XmlWriter writer)
         {
-            var cleanArgs = new QuotedArgsSplitter(args);
-            switch (prefix)
+            try
             {
-                case "build":
-                    return BuildActions(pragma, cleanArgs, writer);
+                var cleanArgs = new QuotedArgsSplitter(args);
+                switch (prefix)
+                {
+                    case "build":
+                        return BuildActions(pragma, cleanArgs, writer);
 
-                case "components":
-                    return ComponentActions(pragma, cleanArgs, writer);
+                    case "components":
+                        return ComponentActions(pragma, cleanArgs, writer);
 
-                case "publish":
-                    return PublishCommands(pragma, cleanArgs, writer);
+                    case "publish":
+                        return PublishCommands(pragma, cleanArgs, writer);
 
-                default:
-                    return false;
+                    default:
+                        return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                writer.WriteRaw("<?error Exception in Backtrace extension: " + ex.GetType() + " - " + ex.Message + "\r\n" + ex.StackTrace);
+                return true;
             }
         }
 
