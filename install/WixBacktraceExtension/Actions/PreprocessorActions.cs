@@ -12,7 +12,7 @@
     public class PreprocessorActions
     {
         protected static readonly object Lock = new object();
-        const string ComponentTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><File Id='{3}' Source='{4}' KeyPath='no'/></Component>";
+        const string ComponentTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
 
         /// <summary>
         /// Build Directory nodes to match those under a given file path.

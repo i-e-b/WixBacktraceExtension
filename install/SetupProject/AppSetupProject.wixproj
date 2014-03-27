@@ -28,6 +28,14 @@
     <Compile Include="SecondFile.wxs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\AnotherThing\AnotherThing.csproj">
+      <Name>AnotherThing</Name>
+      <Project>{a834d94e-71c1-4be0-9684-fbb606f47ac9}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\OptionalPlugin\OptionalPlugin.csproj">
       <Name>OptionalPlugin</Name>
       <Project>{7a4e4da7-047d-48b2-a6f7-ddb40df78ba5}</Project>

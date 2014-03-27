@@ -21,6 +21,15 @@
         <ComponentGroupRef Id="OptionalPluginDependencies" />
         <ComponentGroupRef Id="OptionalPluginDependenciesDuplicate" />
       </Feature>
+
+
+      <Feature Id="Conflict1Feature" Title="Conflict 1" Description="A feature that is co-dependent on sources" Level="4" Absent="allow" AllowAdvertise="no" InstallDefault="followParent">
+        <ComponentGroupRef Id="Conflict1Component"/>
+      </Feature>
+
+      <Feature Id="Conflict2Feature" Title="Conflict 2" Description="A feature that is co-dependent on sources" Level="4" Absent="allow" AllowAdvertise="no" InstallDefault="followParent">
+        <ComponentGroupRef Id="Conflict2Component"/>
+      </Feature>
     </Feature>
 
     <CustomAction Id="LaunchFile" FileKey="CoreExecutable" ExeCommand="" Return="asyncNoWait" />
@@ -63,6 +72,21 @@
 
     <ComponentGroup Id="MainExeDependencies" >
       <?pragma components.uniqueDependenciesOf "$(var.App)" in "INSTALLFOLDER"?>
+    </ComponentGroup>
+
+
+    <ComponentGroup Id="Conflict1Component" >
+      <?pragma components.targetAndAllDependenciesOf "$(var.Plugin)" in "INSTALLFOLDER"?>
+      <Component Id="_4BF0A4349DAA4E0390F15896708C2E4B" Directory="INSTALLFOLDER">
+        <File Id="_9752F755FF244945851C889ED5D99B0E" Name="File1.txt" Source="$(var.AnotherThing.TargetDir)\File1.txt" KeyPath="yes"/>
+      </Component>
+    </ComponentGroup>
+
+    <ComponentGroup Id="Conflict2Component" >
+      <?pragma components.targetAndAllDependenciesOf "$(var.Plugin)" in "INSTALLFOLDER"?>
+      <Component Id="_65D0A6C3AD1F483BB46AE5DBF99A3CA4" Directory="INSTALLFOLDER">
+        <File Id="_5E40DAFD33094F108211DF63CB601A23" Name="File2.txt" Source="$(var.AnotherThing.TargetDir)\File2.txt" KeyPath="yes"/>
+      </Component>
     </ComponentGroup>
 
     <Component Id="MainExecutable" Directory="INSTALLFOLDER">
