@@ -23,12 +23,6 @@
         }
 
         [Test]
-        public void how_get_extension_works()
-        {
-            Assert.That(Path.GetExtension(@"C:\temp\myfile.dll"), Is.EqualTo(".dll"));
-        }
-
-        [Test]
         public void reference_builder_can_target_single_file()
         {
             var key = ReferenceBuilder.AssemblyKeyForFile(Assembly.GetExecutingAssembly().Location);

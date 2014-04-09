@@ -29,7 +29,7 @@
             return Path.Combine(Path.GetTempPath(), "Backtrace_" + name + "_" + key.ToString("X"));
         }
 
-        public static void Save(List<AssemblyKey> componentsGenerated, List<string> pathsInstalledTo)
+        public static void Save(ICollection<AssemblyKey> componentsGenerated, ICollection<string> pathsInstalledTo)
         {
             if (!Directory.Exists(TempFolder())) Directory.CreateDirectory(TempFolder());
 
@@ -42,12 +42,17 @@
                 {
                     WriteTime = DateTime.UtcNow,
                     Components = componentsGenerated.Select(ak=>ak.ToString()).ToList(),
-                    Paths = pathsInstalledTo
+                    Paths = pathsInstalledTo.ToList()
                 });
             }
         }
 
-        public static void Load(List<AssemblyKey> componentsGenerated, List<string> pathsInstalledTo)
+        /// <summary>
+        /// For testing. Set to true to load session even if it's stale.
+        /// </summary>
+        public static bool AlwaysLoad = false;
+
+        public static void Load(ICollection<AssemblyKey> componentsGenerated, ICollection<string> pathsInstalledTo)
         {
             if (!Directory.Exists(TempFolder())) return;
             var sessionFile = Path.Combine(TempFolder(), "session.txt");
@@ -60,7 +65,9 @@
                 data = (SessionData)ser.Deserialize(fs);
             }
 
-            if (NoBuildOutputs() || SessionIsTooOld(data))
+            if (!AlwaysLoad &&
+                   (NoBuildOutputs() || SessionIsTooOld(data))
+               )
             {
                 // First session, start again.
                 DeleteDirectory(TempFolder());
@@ -91,6 +98,8 @@
         static bool NoBuildOutputs()
         {
             var dir = Path.Combine(Directory.GetCurrentDirectory(), "obj");
+            if (!Directory.Exists(dir)) return true;
+
             var dirs = Directory.EnumerateDirectories(dir).Select(p => new DirectoryInfo(p)).ToList();
             dirs.Sort((a, b) => b.LastWriteTimeUtc.CompareTo(a.LastWriteTimeUtc));
 

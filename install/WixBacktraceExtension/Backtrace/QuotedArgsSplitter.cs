@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
 
     public class QuotedArgsSplitter
     {
@@ -15,19 +16,26 @@
                 return;
             }
 
-            var bits = clean.Split(new[] { '"' }, StringSplitOptions.RemoveEmptyEntries);
+            var bits = clean
+                .Replace("\\\"", "\u001A")                                    //  \" is converted to substitute char
+                .Split(new[] { '"' }, StringSplitOptions.RemoveEmptyEntries)  // Split on double quote (")
+                .Select(s => s.Replace("\u001A", "\""))                       // substitute char restored to double quote (")
+                .ToArray();
+
             if (bits.Length < 1) return;
 
             var idx = (clean.StartsWith("\"")) ? (1) : (0);
             if (idx == 1)
             {
-                Primary = bits[0];
+                Primary = bits[0].Trim();
             }
 
             for (var i = idx; i < bits.Length; i+=2)
             {
                 if (i + 1 >= bits.Length)  break; // must come in pairs
-                NamedArguments.Add(bits[i].Trim(), bits[i + 1]);
+
+                NamedArguments.Add(bits[i].Trim()
+                    , bits[i + 1]);
             }
         }
 

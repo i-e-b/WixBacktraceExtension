@@ -30,6 +30,8 @@ namespace WixBacktraceExtension.Backtrace
                 var key = Resolve(basePath, next);
                 if (key == null) continue; // we only look in the local folder and below, so we *should* miss GAC assemblies
 
+                if (dst.Contains(key)) return; // already handled
+
                 dst.Add(key);
                 NonGacDependencies(key.TargetFilePath, dst);
             }
@@ -39,8 +41,21 @@ namespace WixBacktraceExtension.Backtrace
         {
             var guess = GuessName(name.FullName);
 
-            var dll = Directory.GetFiles(basePath, guess + ".dll", SearchOption.AllDirectories).FirstOrDefault();
-            var exe = Directory.GetFiles(basePath, guess + ".exe", SearchOption.AllDirectories).FirstOrDefault();
+            var dll = Path.Combine(basePath, guess + ".dll");
+            var exe = Path.Combine(basePath, guess + ".exe");
+
+            if (File.Exists(dll))
+            {
+                return new AssemblyKey(dll, name.FullName);
+            }
+            if (File.Exists(exe))
+            {
+                return new AssemblyKey(exe, name.FullName);
+            }
+
+
+            dll = Directory.GetFiles(basePath, guess + ".dll", SearchOption.AllDirectories).FirstOrDefault();
+            exe = Directory.GetFiles(basePath, guess + ".exe", SearchOption.AllDirectories).FirstOrDefault();
 
             if (File.Exists(dll))
             {

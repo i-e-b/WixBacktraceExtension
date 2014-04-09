@@ -12,7 +12,7 @@ namespace WixBacktraceExtension.Backtrace
     {
         public override int GetHashCode()
         {
-            return (_key != null ? _key.GetHashCode() : 0);
+            return (_key != null ? ComponentId(_key).GetHashCode() : 0);
         }
 
         readonly string _key;
@@ -33,8 +33,7 @@ namespace WixBacktraceExtension.Backtrace
 
         public bool Equals(AssemblyKey other)
         {
-            return FilePath(_key) == FilePath(other._key)
-                || ComponentId(_key) == ComponentId(other._key);
+            return ComponentId(_key) == ComponentId(other._key);
         }
 
         public override bool Equals(object obj)

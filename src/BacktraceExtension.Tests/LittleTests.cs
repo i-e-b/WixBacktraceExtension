@@ -1,5 +1,6 @@
 ﻿namespace BacktraceExtension.Tests
 {
+    using System.IO;
     using NUnit.Framework;
     using WixBacktraceExtension.Extensions;
 
@@ -22,6 +23,12 @@
             Assert.That(StringExtensions.LimitRight(15, "1234567890"), Is.EqualTo("1234567890"));
         }
 
+        [Test]
+        public void how_get_extension_works()
+        {
+            Assert.That(Path.GetExtension(@"C:\temp\myfile.dll"), Is.EqualTo(".dll"));
+            Assert.That(Path.GetExtension(@"C:\temp\myfile.DLL"), Is.EqualTo(".DLL"));
+        }
 
     }
 }

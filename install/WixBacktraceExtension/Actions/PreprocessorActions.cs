@@ -12,7 +12,8 @@
     public class PreprocessorActions
     {
         protected static readonly object Lock = new object();
-        const string ComponentTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
+        public const string ConditionAlways = "1";
+        const string ComponentTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><Condition><![CDATA[{5}]]></Condition><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
 
         /// <summary>
         /// Build Directory nodes to match those under a given file path.
@@ -57,7 +58,7 @@
         /// Root directory (for files at the top level of the site folder) should be declared directly in the .wxs file and passed
         /// to this pragma in full.
         /// </summary>
-        public static bool BuildPublishedWebsiteComponents(QuotedArgsSplitter args, XmlWriter writer, ICollection<string> writtenPaths)
+        public static bool BuildPublishedWebsiteComponents(QuotedArgsSplitter args, XmlWriter writer, ICollection<string> writtenPaths, ICollection<AssemblyKey> componentsGenerated)
         {
             var target = args.PrimaryRequired();
             var prefix = args.WithDefault("inDirectoriesWithPrefix", "").TrimEnd('_');
@@ -70,26 +71,27 @@
                 var uniqueComponentId = prefix + "_component_" + sanitisedName;
                 var uniqueFileId = prefix + "_" + sanitisedName;
                 var guid = Guid.NewGuid().ToString();
-                writer.WriteRaw(String.Format(ComponentTemplate, uniqueComponentId, guid, root, uniqueFileId, filePath));
+                writer.WriteRaw(String.Format(ComponentTemplate, uniqueComponentId, guid, root, uniqueFileId, filePath, ConditionAlways));
             }
 
 
-            BuildSiteComponentsRecursive(target, target, prefix, writer, writtenPaths);
+            BuildSiteComponentsRecursive(target, target, prefix, writer, writtenPaths, componentsGenerated);
 
             return true;
         }
 
-        static void BuildSiteComponentsRecursive(string baseDir, string target, string prefix, XmlWriter writer, ICollection<string> writtenPaths)
+        static void BuildSiteComponentsRecursive(string baseDir, string target, string prefix, XmlWriter writer, ICollection<string> writtenPaths, ICollection<AssemblyKey> componentsGenerated)
         {
             foreach (var dir in Directory.GetDirectories(target))
             {
                 var directoryId = dir.Replace(baseDir, prefix).FilterJunk().ToUpperInvariant();
 
-                WritePublishedFilesInDirectory(writer, dir, directoryId, writtenPaths);                BuildSiteComponentsRecursive(baseDir, dir, prefix, writer, writtenPaths);
+                WritePublishedFilesInDirectory(writer, dir, directoryId, writtenPaths, componentsGenerated);
+                BuildSiteComponentsRecursive(baseDir, dir, prefix, writer, writtenPaths, componentsGenerated);
             }
         }
 
-        static void WritePublishedFilesInDirectory(XmlWriter writer, string dir, string directoryId, ICollection<string> writtenPaths)
+        static void WritePublishedFilesInDirectory(XmlWriter writer, string dir, string directoryId, ICollection<string> writtenPaths, ICollection<AssemblyKey> componentsGenerated)
         {
             foreach (var filePath in Directory.GetFiles(dir, "*.*", SearchOption.TopDirectoryOnly))
             {
@@ -97,11 +99,19 @@
                 var uniqueFileId = "pub_" + Guid.NewGuid().ToString("N");
                 var guid = Guid.NewGuid().ToString();
 
-                var installTarget = directoryId + "/" + Path.GetFileName(filePath);
+                var fileName = Path.GetFileName(filePath) ?? "";
+                var installTarget = directoryId + "/" + fileName;
+
+                if (fileName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                {
+                    componentsGenerated.Add(ReferenceBuilder.AssemblyKeyForFile(filePath));
+                }
+
                 if (writtenPaths.Contains(installTarget)) continue;
                 writtenPaths.Add(installTarget);
 
-                writer.WriteRaw(String.Format(ComponentTemplate, uniqueComponentId, guid, directoryId, uniqueFileId, filePath));
+
+                writer.WriteRaw(String.Format(ComponentTemplate, uniqueComponentId, guid, directoryId, uniqueFileId, filePath, ConditionAlways));
             }
         }
 
@@ -151,7 +161,8 @@
                 Guid.NewGuid(),
                 directory,
                 "file_" + componentId,
-                target
+                target,
+                ConditionAlways
                 ));
 
             return true;
@@ -172,6 +183,12 @@
         {
             var target = args.PrimaryRequired();
             var directory = args.WithDefault("in", "INSTALLFOLDER");
+            var condition = args.WithDefault("if", "1");
+
+            if (!File.Exists(target))
+            {
+                writer.WriteRaw("<?error WixBacktraceExtension: Could not find path " + target + " ?>");
+            }
 
             var dependencies = new ReferenceBuilder(target).NonGacDependencies().ToList();
 
@@ -197,20 +214,20 @@
                 {
                     if (copyDependencies)
                     {
-                        WriteCopy(writer, directory, dependency);
+                        WriteCopy(writer, directory, dependency, condition);
                     }
                 }
                 else
                 {
                     componentsGenerated.Add(dependencyKey);
-                    WriteOriginal(writer, dependency, directory);
+                    WriteOriginal(writer, dependency, directory, condition);
                 }
             }
 
             return true;
         }
 
-        static void WriteOriginal(XmlWriter writer, string dependency, string directory)
+        static void WriteOriginal(XmlWriter writer, string dependency, string directory, string condition)
         {
             var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
 
@@ -219,10 +236,11 @@
                 Guid.NewGuid(),
                 directory,
                 StringExtensions.LimitRight(70, AssemblyKey.FileId(dependency)),
-                finalLocation));
+                finalLocation,
+                condition));
         }
 
-        static void WriteCopy(XmlWriter writer, string directory, string dependency)
+        static void WriteCopy(XmlWriter writer, string directory, string dependency, string condition)
         {
             var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
 
@@ -231,7 +249,8 @@
                 Guid.NewGuid(),
                 directory,
                 StringExtensions.LimitRight(70, AssemblyKey.FileId(dependency) + "_" + Guid.NewGuid().ToString("N")),
-                finalLocation));
+                finalLocation,
+                condition));
         }
 
         static string WorkAround255CharPathLimit(string src)

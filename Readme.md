@@ -46,9 +46,20 @@ See `AppSetupProject` for details.
 3. Reference the dependencies component group in the primary's feature.
 
 
+   *Optional*:
+
+4. You can add a condition to a set of traced files using the `if` parameter:
+
+        <?pragma components.uniqueDependenciesOf "..." in "..." if "MYPROP" ?>
+   
+   This will only install components if the `MYPROP` property is defined. The condition
+   can be any WiX condition, such as `&FeatureId = 3` or `PROP <> \"value\"`. The condition
+   will be CDATA wrapped, but double-quote characters must be escaped.
+   By default, all components are unconditional (they always install).
+
    *Optional* -- The extension can transform the app.config for your primary output:
 
-4. Add the `components.transformedConfigOf` pragma somewhere in a fragment. You should create the
+5. Add the `components.transformedConfigOf` pragma somewhere in a fragment. You should create the
    Directory node as normal. The plugin will look for a transform file named `Web.{for}.config`
    (in the example below, it will be "Web.Release.config"). This must be copied to the build directory,
    and will be deleted after the transform is complete. You should set your transform files
@@ -59,7 +70,7 @@ See `AppSetupProject` for details.
                                          withId "MainExeConfig"
                                              in "INSTALLFOLDER"?>
 
-5. Reference the `{withId}` component group in the primary's feature:
+6. Reference the `{withId}` component group in the primary's feature:
 
             <Feature Id="MainProgram" ...>
                 <ComponentRef Id="MainExecutable"/>
@@ -77,6 +88,7 @@ See `AppSetupProject` for details.
   main executable first, before any plugins. `components.allDependenciesOf` will only *store* one
   copy of each version of a dependency, but will copy it as many times as required to deliver each
   target its own set of dependencies.
+* If you need to use double quotes (`"`) in a backtrace pragma string, use a backslash to escape (`\"`)
 
 Backtracing for WebSite projects
 --------------------------------
@@ -135,6 +147,7 @@ in WiX when you re-arrange your content files!
   MSBuild and .Net compiler components installed (this should be the case if you have Visual Studio installed).
 * Files in the site root are generated with guessable names: `web.config` will have file `{prefix}_web_config`
   and component `{prefix}_component_web_config`. This is to enable post-install changes (see the example project).
+* If you need to use double quotes (`"`) in a backtrace pragma string, use a backslash to escape (`\"`)
 
 Bringing in floating DLLs and their dependencies
 ------------------------------------------------

@@ -14,14 +14,14 @@
     /// </summary>
     public class BacktracePreprocessorExtension : PreprocessorExtension
     {
-        private readonly List<AssemblyKey> _componentsGenerated;
-        private readonly List<string> _pathsInstalledTo;
+        private readonly HashSet<AssemblyKey> _componentsGenerated;
+        private readonly HashSet<string> _pathsInstalledTo;
         public override string[] Prefixes { get { return new[] { "publish", "build", "components" }; } }
 
         public BacktracePreprocessorExtension()
         {
-            _componentsGenerated = new List<AssemblyKey>();
-            _pathsInstalledTo = new List<string>();
+            _componentsGenerated = new HashSet<AssemblyKey>();
+            _pathsInstalledTo = new HashSet<string>();
         }
 
         /// <summary>
@@ -95,7 +95,7 @@
                     return PreprocessorActions.TransformConfiguration(cleanArgs, writer);
 
                 case "publishedWebsiteIn":
-                    return PreprocessorActions.BuildPublishedWebsiteComponents(cleanArgs, writer, _pathsInstalledTo);
+                    return PreprocessorActions.BuildPublishedWebsiteComponents(cleanArgs, writer, _pathsInstalledTo, _componentsGenerated);
 
                 default:
                     return false;

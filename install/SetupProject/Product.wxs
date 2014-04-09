@@ -70,8 +70,13 @@
                                      withId "MainExeConfig"
                                          in "INSTALLFOLDER"?>
 
+    <!-- Property to test target conditions (see the `if` param in the MainExeDependencies pragma)
+         If you change the value to anything other than "hello", the main exe will not be installed
+    -->
+    <Property Id="MYPROP" Value="hello"></Property>
+    
     <ComponentGroup Id="MainExeDependencies" >
-      <?pragma components.uniqueDependenciesOf "$(var.App)" in "INSTALLFOLDER"?>
+      <?pragma components.uniqueDependenciesOf "$(var.App)" in "INSTALLFOLDER" if "MYPROP = \"hello\"" ?>
     </ComponentGroup>
 
 
