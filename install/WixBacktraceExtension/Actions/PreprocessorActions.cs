@@ -70,6 +70,7 @@
                 var sanitisedName = Path.GetFileName(filePath).FilterJunk();
                 var uniqueComponentId = prefix + "_component_" + sanitisedName;
                 var uniqueFileId = prefix + "_" + sanitisedName;
+
                 var guid = Guid.NewGuid().ToString();
                 writer.WriteRaw(String.Format(ConditionalComponentTemplate, uniqueComponentId, guid, root, uniqueFileId, filePath, ConditionAlways));
             }
@@ -95,9 +96,9 @@
         {
             foreach (var filePath in Directory.GetFiles(dir, "*.*", SearchOption.TopDirectoryOnly))
             {
-                var uniqueComponentId = "pubcmp_" + Guid.NewGuid().ToString("N");
-                var uniqueFileId = "pub_" + Guid.NewGuid().ToString("N");
-                var guid = Guid.NewGuid().ToString();
+                var uniqueComponentId = "pubcmp_" + Guid.NewGuid().ToString("N").ToUpper();
+                var uniqueFileId = "pub_" + Guid.NewGuid().ToString("N").ToUpper();
+                var guid = Guid.NewGuid().ToString().ToUpper();
 
                 var fileName = Path.GetFileName(filePath) ?? "";
                 var installTarget = directoryId + "/" + fileName;
@@ -158,7 +159,7 @@
 
             writer.WriteRaw(String.Format(ConditionalComponentTemplate,
                 componentId,
-                Guid.NewGuid(),
+                Guid.NewGuid().ToString().ToUpper(),
                 directory,
                 "file_" + componentId,
                 target,
@@ -233,7 +234,7 @@
 
             writer.WriteRaw(String.Format(ConditionalComponentTemplate,
                 StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency)),
-                Guid.NewGuid(),
+                Guid.NewGuid().ToString().ToUpper(),
                 directory,
                 StringExtensions.LimitRight(70, AssemblyKey.FileId(dependency)),
                 finalLocation,
@@ -248,7 +249,7 @@
                 StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency) + "_" + Guid.NewGuid().ToString("N")),
                 Guid.NewGuid(),
                 directory,
-                StringExtensions.LimitRight(70, AssemblyKey.FileId(dependency) + "_" + Guid.NewGuid().ToString("N")),
+                StringExtensions.LimitRight(70, AssemblyKey.FileId(dependency) + "_" + Guid.NewGuid().ToString("N")).ToUpper(),
                 finalLocation,
                 condition));
         }
