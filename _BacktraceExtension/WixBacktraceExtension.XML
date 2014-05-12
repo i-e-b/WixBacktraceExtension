@@ -1,0 +1,455 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>WixBacktraceExtension</name>
+    </assembly>
+    <members>
+        <member name="T:WixBacktraceExtension.Actions.PreprocessorActions">
+            <summary>
+            Backtrace core
+            </summary>
+        </member>
+        <member name="F:WixBacktraceExtension.Actions.PreprocessorActions.ConditionAlways">
+            <summary>
+            Wix condition representing always-true
+            </summary>
+        </member>
+        <member name="F:WixBacktraceExtension.Actions.PreprocessorActions.Lock">
+            <summary>
+            Lock around actions, to ensure serialisability
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Actions.PreprocessorActions.BuildMatchingDirectories(WixBacktraceExtension.Backtrace.QuotedArgsSplitter,System.Xml.XmlWriter)">
+            <summary>
+            Build Directory nodes to match those under a given file path.
+            <para> </para>
+            argument syntax is `build.directoriesMatching "c:\path\to\copy\" withPrefix "MYPREFIX_"`.
+            <para> </para>
+            The `Id` of each directory is the prefix plus the path from the target with underscore separators, all uppercase
+            (i.e. from the example syntax, "c:\path\to\copy\a\b\c\" will have ID = "MYPREFIX_A_B_C").
+            If `withPrefix` is excluded, no prefix will be added.
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Actions.PreprocessorActions.BuildDirectoriesRecursive(System.String,System.String,System.String,System.Xml.XmlWriter)">
+            <summary>
+            Build a set of directory tags to match an on-disk folder hierarchy
+            </summary>
+            <param name="baseDir">Relative base for output</param>
+            <param name="target">on-disk target directory</param>
+            <param name="prefix">prefix of Directory tag ID</param>
+            <param name="writer">output XML writer</param>
+        </member>
+        <member name="M:WixBacktraceExtension.Actions.PreprocessorActions.BuildPublishedWebsiteComponents(WixBacktraceExtension.Backtrace.QuotedArgsSplitter,System.Xml.XmlWriter,System.Collections.Generic.ICollection{System.String},System.Collections.Generic.ICollection{WixBacktraceExtension.Backtrace.AssemblyKey})">
+            <summary>
+            Build file components for a website published by the backtrace extension. Includes ALL files in the publish folder.
+            Components are NOT de-duplicated, and so are given guid IDs. You should encapsulate the output of the pragma in a ComponentGroup to reference.
+            <para> </para>
+            syntax is `components.publishedWebsiteIn "$(var.PublishTemp)" inDirectoriesWithPrefix "SITE" rootDirectory "SITE_INSTALLFOLDER"`.
+            The install directories should be built with `build.directoriesMatching` with a matching prefix.
+            Root directory (for files at the top level of the site folder) should be declared directly in the .wxs file and passed
+            to this pragma in full.
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Actions.PreprocessorActions.TransformConfiguration(WixBacktraceExtension.Backtrace.QuotedArgsSplitter,System.Xml.XmlWriter)">
+            <summary>
+            Build file components for a .Net app.config file.
+            <para> </para>
+            argument syntax is `build.transformConfigOf "c:\path\to\assembly.exe" for "BuildConfiguration" withId "MyComponentId" in "InstallDirID"`.
+            The install directory should be declared in the .wxs file.
+            <para> </para>
+            Default `for` is "Release", default `in` is "INSTALLFOLDER". All other parameters must be supplied.
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Actions.PreprocessorActions.BuildComponents(System.Collections.Generic.ICollection{WixBacktraceExtension.Backtrace.AssemblyKey},WixBacktraceExtension.Backtrace.QuotedArgsSplitter,System.Xml.XmlWriter,System.Collections.Generic.ICollection{System.String},System.Boolean,System.Boolean)">
+            <summary>
+            Build file components for a .Net assembly's dependencies.
+            <para>This DOES NOT include the target assembly itself.</para>
+            </summary>
+            <param name="componentsGenerated">mutable list of components that have been build (as they must be unique)</param>
+            <param name="args">argument syntax is `build.componentsFor "c:\path\to\assembly.exe" in "InstallDirID"`. The install directory should be declared in the .wxs file.</param>
+            <param name="writer">output writer</param>
+            <param name="copyDependencies">if true, all dependencies will be copied to target folder. Otherwise, only dependencies not included elsewhere will be added.</param>
+            <param name="writtenPaths">Path that have files already (will be skipped), in the format `{DirectoryId}/{installed file name}`</param>
+            <param name="includeTarget">If true, the target will have a component generated. If false, only dependencies will get a component</param>
+        </member>
+        <member name="T:WixBacktraceExtension.Backtrace.AssemblyKey">
+            <summary>
+            "name, namespace, version|filepath" for an Assembly
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.AssemblyKey.GetHashCode">
+            <summary>
+            Serves as a hash function for a particular type. 
+            </summary>
+            <returns>
+            A hash code for the current <see cref="T:System.Object"/>.
+            </returns>
+            <filterpriority>2</filterpriority>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.AssemblyKey.#ctor(System.Reflection.Assembly)">
+            <summary>
+            Read from assembly
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.AssemblyKey.#ctor(System.String,System.String)">
+            <summary>
+            Read from file
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.AssemblyKey.#ctor(System.String)">
+            <summary>
+            Read from string
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.AssemblyKey.Equals(WixBacktraceExtension.Backtrace.AssemblyKey)">
+            <summary>
+            Indicates whether the current object is equal to another object of the same type.
+            </summary>
+            <returns>
+            true if the current object is equal to the <paramref name="other"/> parameter; otherwise, false.
+            </returns>
+            <param name="other">An object to compare with this object.</param>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.AssemblyKey.Equals(System.Object)">
+            <summary>
+            Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:System.Object"/>.
+            </summary>
+            <returns>
+            true if the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:System.Object"/>; otherwise, false.
+            </returns>
+            <param name="obj">The object to compare with the current object. </param><filterpriority>2</filterpriority>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.AssemblyKey.ToString">
+            <summary>
+            Returns a string that represents the current object.
+            </summary>
+            <returns>
+            A string that represents the current object.
+            </returns>
+            <filterpriority>2</filterpriority>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.AssemblyKey.ComponentId(System.String)">
+            <summary>
+            turn an assembly key string into a unique component key name
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.AssemblyKey.FilePath(System.String)">
+            <summary>
+            Get the source file path for an assembly key
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.AssemblyKey.FileId(System.String)">
+            <summary>
+            turn an assembly key string into a unique file key name
+            </summary>
+        </member>
+        <member name="P:WixBacktraceExtension.Backtrace.AssemblyKey.Version">
+            <summary>
+            Major.Minor version of assembly
+            </summary>
+        </member>
+        <member name="P:WixBacktraceExtension.Backtrace.AssemblyKey.FileName">
+            <summary>
+            Name of file
+            </summary>
+        </member>
+        <member name="P:WixBacktraceExtension.Backtrace.AssemblyKey.TargetFilePath">
+            <summary>
+            Target path of file
+            </summary>
+        </member>
+        <member name="T:WixBacktraceExtension.Configuration.ConfigTransform">
+            <summary>
+            Performs configuration transforms for web.config and app.config files.
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Configuration.ConfigTransform.Apply(System.String,System.String,System.String)">
+            <summary>
+            Apply transform to source in-place.
+            </summary>
+        </member>
+        <member name="T:WixBacktraceExtension.Configuration.DummyTransformLogger">
+            <summary>
+            Xml transform logger that does nothing
+            </summary>
+        </member>
+        <member name="T:WixBacktraceExtension.Backtrace.QuotedArgsSplitter">
+            <summary>
+            Backtrace XML arguments parser
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.QuotedArgsSplitter.#ctor(System.String)">
+            <summary>
+            Read argument string
+            </summary>
+            <param name="args"></param>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.QuotedArgsSplitter.WithDefault(System.String,System.String)">
+            <summary>
+            Look up a named argument, with a default value if argument not provided
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.QuotedArgsSplitter.Required(System.String)">
+            <summary>
+            Look up a named argument, with an exception thrown if argument not provided
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.QuotedArgsSplitter.PrimaryRequired">
+            <summary>
+            Return the primary argument, with an exception thrown if argument not provided
+            </summary>
+        </member>
+        <member name="P:WixBacktraceExtension.Backtrace.QuotedArgsSplitter.Primary">
+            <summary>
+            The first argument, if no name is given at the beginning
+            </summary>
+        </member>
+        <member name="P:WixBacktraceExtension.Backtrace.QuotedArgsSplitter.NamedArguments">
+            <summary>
+            Named arguments
+            </summary>
+        </member>
+        <member name="T:WixBacktraceExtension.Backtrace.ReferenceBuilder">
+            <summary>
+            Builds tree of non-GAC dll references froman assembly
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.ReferenceBuilder.#ctor(System.String)">
+            <summary>
+            Init builder based on a dll file.
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.ReferenceBuilder.NonGacDependencies">
+            <summary>
+            Return all assembly references, excluding those that only appear in the GAC
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.ReferenceBuilder.GuessName(System.String)">
+            <summary>
+            Guess name for a file, based on assembly full name
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Backtrace.ReferenceBuilder.AssemblyKeyForFile(System.String)">
+            <summary>
+            Generate a lookup key for an assembly file.
+            </summary>
+        </member>
+        <member name="T:WixBacktraceExtension.Extensions.StringExtensions">
+            <summary>
+            CRC32 string extension
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Extensions.StringExtensions.CRC32(System.String)">
+            <summary>
+            Return CRC32 as Int from a source string
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Extensions.StringExtensions.FilterJunk(System.String)">
+            <summary>
+            Remove non file name characters  from a string
+            </summary>
+            <param name="src"></param>
+            <returns></returns>
+        </member>
+        <member name="M:WixBacktraceExtension.Extensions.StringExtensions.LastPathElement(System.String)">
+            <summary>
+            Last element from a file or directory path
+            </summary>
+            <param name="path"></param>
+            <returns></returns>
+        </member>
+        <member name="M:WixBacktraceExtension.Extensions.StringExtensions.LimitRight(System.Int32,System.String)">
+            <summary>
+            Return at most `numChars` from a string, retaining right-most characters first
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Extensions.StringExtensions.LimitRight(System.String,System.Int32)">
+            <summary>
+            Return at most `numChars` from a string, retaining right-most characters first
+            </summary>
+        </member>
+        <member name="T:WixBacktraceExtension.Extensions.Crc32">
+            <summary>
+            CRC32 hash
+            </summary>
+        </member>
+        <member name="F:WixBacktraceExtension.Extensions.Crc32.DefaultPolynomial">
+            <summary> Seed data </summary>
+        </member>
+        <member name="F:WixBacktraceExtension.Extensions.Crc32.DefaultSeed">
+            <summary> Seed data </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Extensions.Crc32.#ctor">
+            <summary>
+            Initialise CRC32
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Extensions.Crc32.Initialize">
+            <summary>
+            Initializes an implementation of the <see cref="T:System.Security.Cryptography.HashAlgorithm"/> class.
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Extensions.Crc32.HashCore(System.Byte[],System.Int32,System.Int32)">
+            <summary>
+            When overridden in a derived class, routes data written to the object into the hash algorithm for computing the hash.
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Extensions.Crc32.HashFinal">
+            <summary>
+            When overridden in a derived class, finalizes the hash computation after the last data is processed by the cryptographic stream object.
+            </summary>
+            <returns>
+            The computed hash code.
+            </returns>
+        </member>
+        <member name="M:WixBacktraceExtension.Extensions.Crc32.Compute(System.Byte[])">
+            <summary> Compute hash </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Extensions.Crc32.Compute(System.UInt32,System.Byte[])">
+            <summary> Compute hash </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Extensions.Crc32.Compute(System.UInt32,System.UInt32,System.Byte[])">
+            <summary> Compute hash </summary>
+        </member>
+        <member name="P:WixBacktraceExtension.Extensions.Crc32.HashSize">
+            <summary>
+            Gets the size, in bits, of the computed hash code.
+            </summary>
+            <returns>
+            The size, in bits, of the computed hash code.
+            </returns>
+        </member>
+        <member name="T:WixBacktraceExtension.Session">
+            <summary>
+            Saves and restores Wix processing sessions
+            </summary>
+            <remarks>
+            Wix `candle.exe` calls into this plugin, and is call one for every source file. This
+            means we can't do our unique item tracing between source files easily. To remedy,
+            we save our data across sessions with a short timeout
+            </remarks>
+        </member>
+        <member name="M:WixBacktraceExtension.Session.TempFolder">
+            <summary>
+            Give a temp directory for this project
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Session.Save(System.Collections.Generic.ICollection{WixBacktraceExtension.Backtrace.AssemblyKey},System.Collections.Generic.ICollection{System.String})">
+            <summary>
+            Save state to file
+            </summary>
+        </member>
+        <member name="F:WixBacktraceExtension.Session.AlwaysLoad">
+            <summary>
+            For testing. Set to true to load session even if it's stale.
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Session.Load(System.Collections.Generic.ICollection{WixBacktraceExtension.Backtrace.AssemblyKey},System.Collections.Generic.ICollection{System.String})">
+            <summary>
+            Load state from file
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Session.NoBuildOutputs">
+            <summary>
+            If there are no build outputs, we are in the first call to "candle.exe" and we should clear the temp output
+            <para>Otherwise, we are a chained output and we should just read the session</para>
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.Session.DeleteDirectory(System.String)">
+            <summary>
+            A strong recursive directory delete.
+            Directory.Delete("...", true) has quite a few bugs.
+            </summary>
+            <param name="target">Directory to delete</param>
+        </member>
+        <member name="T:WixBacktraceExtension.Session.SessionData">
+            <summary>
+            Saved data
+            </summary>
+        </member>
+        <member name="P:WixBacktraceExtension.Session.SessionData.WriteTime">
+            <summary>
+            File time
+            </summary>
+        </member>
+        <member name="P:WixBacktraceExtension.Session.SessionData.Components">
+            <summary>
+            Written components
+            </summary>
+        </member>
+        <member name="P:WixBacktraceExtension.Session.SessionData.Paths">
+            <summary>
+            Written paths
+            </summary>
+        </member>
+        <member name="T:WixBacktraceExtension.SitePublication.Website">
+            <summary>
+            Website publishing code. Not stable.
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.SitePublication.Website.PublishSiteToFolder(WixBacktraceExtension.Backtrace.QuotedArgsSplitter,System.Xml.XmlWriter)">
+            <summary>
+            Call out to MSBuild, publish site as normal
+            <para>Expects args to be  `publish.webSiteProject "C:\path\to\site.csproj" to "C:\path\to\temp" for "BuildConfiguration"`</para>
+            <para>Both the source project and target directory should already exist. You can create a temp directory
+            into a variable with &lt;?define PublishTemp=$(publish.tempDirectory)?&gt;</para>
+            <para>If `for` parameter is not given, it will default to "Release"</para>
+            <para>Will attempt to transform `web.config` using `web.{for}.config` (i.e. `web.Release.config`)</para>
+            </summary>
+        </member>
+        <member name="T:WixBacktraceExtension.WixBacktraceExtension">
+            <summary>
+            Bindings from Wix to the backtrace extension.
+            </summary>
+        </member>
+        <member name="P:WixBacktraceExtension.WixBacktraceExtension.PreprocessorExtension">
+            <summary>
+            Injection point
+            </summary>
+        </member>
+        <member name="T:WixBacktraceExtension.BacktracePreprocessorExtension">
+            <summary>
+            Backtrace extension interface
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.BacktracePreprocessorExtension.#ctor">
+            <summary>
+            Init preprocessor.
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.BacktracePreprocessorExtension.GetVariableValue(System.String,System.String)">
+            <summary>
+            Prefixed variables, called like $(prefix.name)
+            </summary>
+            <param name="prefix">This is matched to <see cref="P:WixBacktraceExtension.BacktracePreprocessorExtension.Prefixes"/> to find this plugin.</param>
+            <param name="name">Name of the variable whose value is to be returned.</param>
+        </member>
+        <member name="M:WixBacktraceExtension.BacktracePreprocessorExtension.ProcessPragma(Microsoft.Tools.WindowsInstallerXml.SourceLineNumberCollection,System.String,System.String,System.String,System.Xml.XmlWriter)">
+            <summary>
+            The syntax is &lt;?pragma prefix.name args?&gt; where the arguments are just a string. Don't close the XmlWriter
+            </summary>
+            <param name="sourceLineNumbers"></param>
+            <param name="prefix">The pragma prefix. This is matched to <see cref="P:WixBacktraceExtension.BacktracePreprocessorExtension.Prefixes"/> to find this plugin. We have 'build' and 'include' for different sections of the .wxs</param>
+            <param name="pragma">The command being requested. This is our dispatch key</param>
+            <param name="args">Any arguments passed to the pragma. This is a raw string, but any $() references will have been resolved for us</param>
+            <param name="writer">Output into the final .wxs XML file</param>
+            <returns></returns>
+        </member>
+        <member name="M:WixBacktraceExtension.BacktracePreprocessorExtension.InitializePreprocess">
+            <summary>
+            Startup actions.
+            </summary>
+        </member>
+        <member name="M:WixBacktraceExtension.BacktracePreprocessorExtension.FinalizePreprocess">
+            <summary>
+            Actions performed once XML has been finally generated, before WiX project is compiled
+            </summary>
+        </member>
+        <member name="P:WixBacktraceExtension.BacktracePreprocessorExtension.Prefixes">
+            <summary>
+            Matched prefixes, used for Wix injections
+            </summary>
+        </member>
+    </members>
+</doc>
