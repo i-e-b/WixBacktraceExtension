@@ -28,9 +28,9 @@ namespace WixBacktraceExtension.Backtrace
             foreach (var next in ReferencesForAssemblyPath(srcFilePath))
             {
                 var key = Resolve(basePath, next);
-                if (key == null) continue; // we only look in the local folder and below, so we *should* miss GAC assemblies
 
-                if (dst.Contains(key)) return; // already handled
+                if (key == null) continue; // we only look in the local folder and below, so we *should* miss GAC assemblies
+                if (dst.Contains(key)) continue; // already handled
 
                 dst.Add(key);
                 NonGacDependencies(key.TargetFilePath, dst);

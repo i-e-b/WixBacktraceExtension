@@ -13,7 +13,7 @@
     {
         protected static readonly object Lock = new object();
         public const string ConditionAlways = "1";
-        const string ComponentTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><Condition><![CDATA[{5}]]></Condition><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
+        const string ConditionalComponentTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><Condition><![CDATA[{5}]]></Condition><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
 
         /// <summary>
         /// Build Directory nodes to match those under a given file path.
@@ -71,7 +71,7 @@
                 var uniqueComponentId = prefix + "_component_" + sanitisedName;
                 var uniqueFileId = prefix + "_" + sanitisedName;
                 var guid = Guid.NewGuid().ToString();
-                writer.WriteRaw(String.Format(ComponentTemplate, uniqueComponentId, guid, root, uniqueFileId, filePath, ConditionAlways));
+                writer.WriteRaw(String.Format(ConditionalComponentTemplate, uniqueComponentId, guid, root, uniqueFileId, filePath, ConditionAlways));
             }
 
 
@@ -111,7 +111,7 @@
                 writtenPaths.Add(installTarget);
 
 
-                writer.WriteRaw(String.Format(ComponentTemplate, uniqueComponentId, guid, directoryId, uniqueFileId, filePath, ConditionAlways));
+                writer.WriteRaw(String.Format(ConditionalComponentTemplate, uniqueComponentId, guid, directoryId, uniqueFileId, filePath, ConditionAlways));
             }
         }
 
@@ -156,7 +156,7 @@
             File.Copy(target, original, true);
             ConfigTransform.Apply(original, transformPath, target);
 
-            writer.WriteRaw(String.Format(ComponentTemplate,
+            writer.WriteRaw(String.Format(ConditionalComponentTemplate,
                 componentId,
                 Guid.NewGuid(),
                 directory,
@@ -231,7 +231,7 @@
         {
             var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
 
-            writer.WriteRaw(String.Format(ComponentTemplate,
+            writer.WriteRaw(String.Format(ConditionalComponentTemplate,
                 StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency)),
                 Guid.NewGuid(),
                 directory,
@@ -244,7 +244,7 @@
         {
             var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
 
-            writer.WriteRaw(String.Format(ComponentTemplate,
+            writer.WriteRaw(String.Format(ConditionalComponentTemplate,
                 StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency) + "_" + Guid.NewGuid().ToString("N")),
                 Guid.NewGuid(),
                 directory,
