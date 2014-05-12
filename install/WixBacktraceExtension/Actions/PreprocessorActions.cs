@@ -13,7 +13,8 @@
     {
         protected static readonly object Lock = new object();
         public const string ConditionAlways = "1";
-        const string ComponentTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><Condition><![CDATA[{5}]]></Condition><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
+        const string ComponentWithDirectoryTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><Condition><![CDATA[{5}]]></Condition><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
+        const string ComponentNoDirectoryTemplate = "<Component Id='{0}' Guid='{1}'><Condition><![CDATA[{5}]]></Condition><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
 
         /// <summary>
         /// Build Directory nodes to match those under a given file path.
@@ -71,7 +72,7 @@
                 var uniqueComponentId = prefix + "_component_" + sanitisedName;
                 var uniqueFileId = prefix + "_" + sanitisedName;
                 var guid = Guid.NewGuid().ToString().ToUpper();
-                writer.WriteRaw(String.Format(ComponentTemplate, uniqueComponentId, guid, root, uniqueFileId, filePath, ConditionAlways));
+                writer.WriteRaw(String.Format(ComponentWithDirectoryTemplate, uniqueComponentId, guid, root, uniqueFileId, filePath, ConditionAlways));
             }
 
 
@@ -111,7 +112,7 @@
                 writtenPaths.Add(installTarget);
 
 
-                writer.WriteRaw(String.Format(ComponentTemplate, uniqueComponentId, guid, directoryId, uniqueFileId, filePath, ConditionAlways));
+                writer.WriteRaw(String.Format(ComponentWithDirectoryTemplate, uniqueComponentId, guid, directoryId, uniqueFileId, filePath, ConditionAlways));
             }
         }
 
@@ -143,7 +144,7 @@
         public static bool TransformConfiguration(QuotedArgsSplitter args, XmlWriter writer)
         {
             var target = args.PrimaryRequired() + ".config";
-            var directory = args.WithDefault("in", "INSTALLFOLDER");
+            var directory = args.WithDefault("in", null);
             var config = args.WithDefault("for", "Release");
             var componentId = args.Required("withId");
 
@@ -156,7 +157,9 @@
             File.Copy(target, original, true);
             ConfigTransform.Apply(original, transformPath, target);
 
-            writer.WriteRaw(String.Format(ComponentTemplate,
+            var template = directory != null ? ComponentWithDirectoryTemplate :ComponentNoDirectoryTemplate;
+
+            writer.WriteRaw(String.Format(template,
                 componentId,
                 Guid.NewGuid().ToString().ToUpper(),
                 directory,
@@ -182,7 +185,7 @@
             bool copyDependencies, bool includeTarget)
         {
             var target = args.PrimaryRequired();
-            var directory = args.WithDefault("in", "INSTALLFOLDER");
+            var directory = args.WithDefault("in", null);
             var condition = args.WithDefault("if", "1");
 
             if (!File.Exists(target))
@@ -231,7 +234,9 @@
         {
             var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
 
-            writer.WriteRaw(String.Format(ComponentTemplate,
+            var template = (directory != null) ? ComponentWithDirectoryTemplate : ComponentNoDirectoryTemplate;
+
+            writer.WriteRaw(String.Format(template,
                 StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency)),
                 Guid.NewGuid().ToString().ToUpper(),
                 directory,
@@ -244,7 +249,9 @@
         {
             var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
 
-            writer.WriteRaw(String.Format(ComponentTemplate,
+            var template = (directory != null) ? ComponentWithDirectoryTemplate : ComponentNoDirectoryTemplate;
+
+            writer.WriteRaw(String.Format(template,
                 StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency) + "_" + Guid.NewGuid().ToString("N")).ToUpper(),
                 Guid.NewGuid().ToString().ToUpper(),
                 directory,
