@@ -4,8 +4,15 @@
     using System.Collections.Generic;
     using System.Linq;
 
+    /// <summary>
+    /// Backtrace XML arguments parser
+    /// </summary>
     public class QuotedArgsSplitter
     {
+        /// <summary>
+        /// Read argument string
+        /// </summary>
+        /// <param name="args"></param>
         public QuotedArgsSplitter(string args)
         {
             NamedArguments = new Dictionary<string, string>();

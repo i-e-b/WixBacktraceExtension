@@ -8,6 +8,10 @@
     public class WixBacktraceExtension : WixExtension
     {
         private BacktracePreprocessorExtension preprocessorExtension;
+
+        /// <summary>
+        /// Injection point
+        /// </summary>
         public override PreprocessorExtension PreprocessorExtension
         {
             get

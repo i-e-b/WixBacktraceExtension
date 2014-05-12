@@ -5,15 +5,25 @@ namespace WixBacktraceExtension.Backtrace
     using System.Linq;
     using Mono.Cecil;
 
+    /// <summary>
+    /// Builds tree of non-GAC dll references froman assembly
+    /// </summary>
     public class ReferenceBuilder
     {
         readonly string _filePath;
 
+        /// <summary>
+        /// Init builder based on a dll file.
+        /// </summary>
         public ReferenceBuilder(string filePath)
         {
             _filePath = filePath;
         }
 
+        /// <summary>
+        /// Return all assembly references, excluding those that only appear in the GAC
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<AssemblyKey> NonGacDependencies()
         {
             var result = new HashSet<AssemblyKey>();
@@ -81,6 +91,9 @@ namespace WixBacktraceExtension.Backtrace
             }
         }
 
+        /// <summary>
+        /// Guess name for a file, based on assembly full name
+        /// </summary>
         public static string GuessName(string fullName)
         {
             var idx = fullName.IndexOfAny(new[] { ' ', ',' });
@@ -88,6 +101,9 @@ namespace WixBacktraceExtension.Backtrace
             return fullName.Substring(0, idx);
         }
 
+        /// <summary>
+        /// Generate a lookup key for an assembly file.
+        /// </summary>
         public static AssemblyKey AssemblyKeyForFile(string filePath)
         {
             var defn = AssemblyDefinition.ReadAssembly(filePath);

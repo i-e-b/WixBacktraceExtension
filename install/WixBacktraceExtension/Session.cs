@@ -29,6 +29,9 @@
             return Path.Combine(Path.GetTempPath(), "Backtrace_" + name + "_" + key.ToString("X"));
         }
 
+        /// <summary>
+        /// Save state to file
+        /// </summary>
         public static void Save(ICollection<AssemblyKey> componentsGenerated, ICollection<string> pathsInstalledTo)
         {
             if (!Directory.Exists(TempFolder())) Directory.CreateDirectory(TempFolder());
@@ -52,6 +55,9 @@
         /// </summary>
         public static bool AlwaysLoad = false;
 
+        /// <summary>
+        /// Load state from file
+        /// </summary>
         public static void Load(ICollection<AssemblyKey> componentsGenerated, ICollection<string> pathsInstalledTo)
         {
             if (!Directory.Exists(TempFolder())) return;
@@ -133,11 +139,23 @@
             Directory.Delete(target, false);
         }
 
+        /// <summary>
+        /// Saved data
+        /// </summary>
         [Serializable]
         public class SessionData
         {
+            /// <summary>
+            /// File time
+            /// </summary>
             public DateTime WriteTime { get; set; }
+            /// <summary>
+            /// Written components
+            /// </summary>
             public List<string> Components { get; set; }
+            /// <summary>
+            /// Written paths
+            /// </summary>
             public List<string> Paths { get; set; }
         }
     }

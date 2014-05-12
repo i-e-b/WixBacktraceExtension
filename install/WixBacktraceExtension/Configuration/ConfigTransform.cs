@@ -11,6 +11,9 @@
     /// </summary>
     public class ConfigTransform
     {
+        /// <summary>
+        /// Apply transform to source in-place.
+        /// </summary>
         public static void Apply(string srcPath, string transformPath, string targetPath)
         {
             if (!File.Exists(srcPath) || !File.Exists(transformPath))

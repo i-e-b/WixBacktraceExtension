@@ -9,11 +9,21 @@
     using global::WixBacktraceExtension.Configuration;
     using global::WixBacktraceExtension.Extensions;
 
+    /// <summary>
+    /// Backtrace core
+    /// </summary>
     public class PreprocessorActions
     {
+        /// <summary>
+        /// Lock around actions, to ensure serialisability
+        /// </summary>
         protected static readonly object Lock = new object();
+        /// <summary>
+        /// Wix condition representing always-true
+        /// </summary>
         public const string ConditionAlways = "1";
-        const string ConditionalComponentTemplate = "<Component Id='{0}' Guid='{1}' Directory='{2}'><Condition><![CDATA[{5}]]></Condition><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
+        const string ComponentWithDirectoryTemplate="<Component Id='{0}' Guid='{1}' Directory='{2}'><Condition><![CDATA[{5}]]></Condition><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
+        const string ComponentNoDirectoryTemplate = "<Component Id='{0}' Guid='{1}'><Condition><![CDATA[{5}]]></Condition><File Id='{3}' Source='{4}' KeyPath='yes'/></Component>";
 
         /// <summary>
         /// Build Directory nodes to match those under a given file path.
@@ -34,6 +44,13 @@
             return true;
         }
 
+        /// <summary>
+        /// Build a set of directory tags to match an on-disk folder hierarchy
+        /// </summary>
+        /// <param name="baseDir">Relative base for output</param>
+        /// <param name="target">on-disk target directory</param>
+        /// <param name="prefix">prefix of Directory tag ID</param>
+        /// <param name="writer">output XML writer</param>
         public static void BuildDirectoriesRecursive(string baseDir, string target, string prefix, XmlWriter writer)
         {
             foreach (var dir in Directory.GetDirectories(target))
@@ -70,9 +87,8 @@
                 var sanitisedName = Path.GetFileName(filePath).FilterJunk();
                 var uniqueComponentId = prefix + "_component_" + sanitisedName;
                 var uniqueFileId = prefix + "_" + sanitisedName;
-
-                var guid = Guid.NewGuid().ToString();
-                writer.WriteRaw(String.Format(ConditionalComponentTemplate, uniqueComponentId, guid, root, uniqueFileId, filePath, ConditionAlways));
+                var guid = Guid.NewGuid().ToString().ToUpper();
+                writer.WriteRaw(String.Format(ComponentWithDirectoryTemplate, uniqueComponentId, guid, root, uniqueFileId, filePath, ConditionAlways));
             }
 
 
@@ -111,26 +127,8 @@
                 if (writtenPaths.Contains(installTarget)) continue;
                 writtenPaths.Add(installTarget);
 
-
-                writer.WriteRaw(String.Format(ConditionalComponentTemplate, uniqueComponentId, guid, directoryId, uniqueFileId, filePath, ConditionAlways));
+                writer.WriteRaw(String.Format(ComponentWithDirectoryTemplate, uniqueComponentId, guid, directoryId, uniqueFileId, filePath, ConditionAlways));
             }
-        }
-
-        public static bool ReferenceComponents(string command, QuotedArgsSplitter args, XmlWriter writer)
-        {
-            var componentRefTemplate = @"<ComponentRef Id='{0}'/>"
-                .Replace("'", "\"");
-
-            var dependencies = new ReferenceBuilder(args.Primary).NonGacDependencies().ToList();
-
-            foreach (var dependencyKey in dependencies)
-            {
-                var dependency = dependencyKey.ToString();
-
-                writer.WriteRaw(String.Format(componentRefTemplate, AssemblyKey.ComponentId(dependency)));
-            }
-
-            return true;
         }
 
         /// <summary>
@@ -144,7 +142,7 @@
         public static bool TransformConfiguration(QuotedArgsSplitter args, XmlWriter writer)
         {
             var target = args.PrimaryRequired() + ".config";
-            var directory = args.WithDefault("in", "INSTALLFOLDER");
+            var directory = args.WithDefault("in", null);
             var config = args.WithDefault("for", "Release");
             var componentId = args.Required("withId");
 
@@ -157,7 +155,9 @@
             File.Copy(target, original, true);
             ConfigTransform.Apply(original, transformPath, target);
 
-            writer.WriteRaw(String.Format(ConditionalComponentTemplate,
+            var template = (directory != null) ? (ComponentWithDirectoryTemplate) : (ComponentNoDirectoryTemplate);
+
+            writer.WriteRaw(String.Format(template,
                 componentId,
                 Guid.NewGuid().ToString().ToUpper(),
                 directory,
@@ -183,7 +183,7 @@
             bool copyDependencies, bool includeTarget)
         {
             var target = args.PrimaryRequired();
-            var directory = args.WithDefault("in", "INSTALLFOLDER");
+            var directory = args.WithDefault("in", null);
             var condition = args.WithDefault("if", "1");
 
             if (!File.Exists(target))
@@ -232,7 +232,9 @@
         {
             var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
 
-            writer.WriteRaw(String.Format(ConditionalComponentTemplate,
+            var template = (directory != null) ? (ComponentWithDirectoryTemplate) : (ComponentNoDirectoryTemplate);
+
+            writer.WriteRaw(String.Format(template,
                 StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency)),
                 Guid.NewGuid().ToString().ToUpper(),
                 directory,
@@ -245,9 +247,11 @@
         {
             var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
 
-            writer.WriteRaw(String.Format(ConditionalComponentTemplate,
-                StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency) + "_" + Guid.NewGuid().ToString("N")),
-                Guid.NewGuid(),
+            var template = (directory != null) ? (ComponentWithDirectoryTemplate) : (ComponentNoDirectoryTemplate);
+
+            writer.WriteRaw(String.Format(template,
+                StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency) + "_" + Guid.NewGuid().ToString("N")).ToUpper(),
+                Guid.NewGuid().ToString().ToUpper(),
                 directory,
                 StringExtensions.LimitRight(70, AssemblyKey.FileId(dependency) + "_" + Guid.NewGuid().ToString("N")).ToUpper(),
                 finalLocation,

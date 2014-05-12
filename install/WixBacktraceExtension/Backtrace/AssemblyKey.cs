@@ -10,6 +10,13 @@ namespace WixBacktraceExtension.Backtrace
     /// </summary>
     public class AssemblyKey : IEquatable<AssemblyKey>
     {
+        /// <summary>
+        /// Serves as a hash function for a particular type. 
+        /// </summary>
+        /// <returns>
+        /// A hash code for the current <see cref="T:System.Object"/>.
+        /// </returns>
+        /// <filterpriority>2</filterpriority>
         public override int GetHashCode()
         {
             return (_key != null ? ComponentId(_key).GetHashCode() : 0);
@@ -17,8 +24,14 @@ namespace WixBacktraceExtension.Backtrace
 
         readonly string _key;
 
+        /// <summary>
+        /// Read from assembly
+        /// </summary>
         public AssemblyKey(Assembly assm) : this(assm.Location, assm.FullName) { }
 
+        /// <summary>
+        /// Read from file
+        /// </summary>
         public AssemblyKey(string filePath, string assemblyFullName)
         {
             var bits = assemblyFullName.Split(',');
@@ -26,21 +39,45 @@ namespace WixBacktraceExtension.Backtrace
             Version = double.Parse(string.Join(".", (bits[1].Split('=')[1]).Split('.').Take(2)));
         }
 
+        /// <summary>
+        /// Read from string
+        /// </summary>
         public AssemblyKey(string key)
         {
             _key = key;
         }
 
+        /// <summary>
+        /// Indicates whether the current object is equal to another object of the same type.
+        /// </summary>
+        /// <returns>
+        /// true if the current object is equal to the <paramref name="other"/> parameter; otherwise, false.
+        /// </returns>
+        /// <param name="other">An object to compare with this object.</param>
         public bool Equals(AssemblyKey other)
         {
             return ComponentId(_key) == ComponentId(other._key);
         }
 
+        /// <summary>
+        /// Determines whether the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:System.Object"/>.
+        /// </summary>
+        /// <returns>
+        /// true if the specified <see cref="T:System.Object"/> is equal to the current <see cref="T:System.Object"/>; otherwise, false.
+        /// </returns>
+        /// <param name="obj">The object to compare with the current object. </param><filterpriority>2</filterpriority>
         public override bool Equals(object obj)
         {
             return obj is AssemblyKey && Equals((AssemblyKey)obj);
         }
 
+        /// <summary>
+        /// Returns a string that represents the current object.
+        /// </summary>
+        /// <returns>
+        /// A string that represents the current object.
+        /// </returns>
+        /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
             return _key;
@@ -76,7 +113,15 @@ namespace WixBacktraceExtension.Backtrace
         /// Major.Minor version of assembly
         /// </summary>
         public double Version { get; private set; }
+
+        /// <summary>
+        /// Name of file
+        /// </summary>
         public string FileName { get { return Path.GetFileName(FilePath(_key)); } }
+
+        /// <summary>
+        /// Target path of file
+        /// </summary>
         public string TargetFilePath { get { return FilePath(_key); } }
     }
 }

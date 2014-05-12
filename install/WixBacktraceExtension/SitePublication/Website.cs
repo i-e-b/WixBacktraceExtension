@@ -8,6 +8,9 @@
     using Configuration;
     using Microsoft.Build.BuildEngine;
 
+    /// <summary>
+    /// Website publishing code. Not stable.
+    /// </summary>
     public class Website
     {
         /// <summary>

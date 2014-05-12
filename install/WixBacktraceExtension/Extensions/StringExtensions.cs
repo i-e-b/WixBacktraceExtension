@@ -4,8 +4,13 @@
     using System.Linq;
     using System.Text;
 
-    public static class StringExtensions
+    public static partial class StringExtensions
     {
+        /// <summary>
+        /// Remove non file name characters  from a string
+        /// </summary>
+        /// <param name="src"></param>
+        /// <returns></returns>
         public static string FilterJunk(this string src)
         {
             var dst = new StringBuilder();
@@ -17,6 +22,11 @@
             return dst.ToString();
         }
 
+        /// <summary>
+        /// Last element from a file or directory path
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         public static string LastPathElement(this string path)
         {
             var try1 = Path.GetFileNameWithoutExtension(path);
@@ -25,10 +35,16 @@
             return Path.GetFileNameWithoutExtension(Path.GetDirectoryName(path));
         }
 
+        /// <summary>
+        /// Return at most `numChars` from a string, retaining right-most characters first
+        /// </summary>
         public static string LimitRight(int numChars, string src)
         {
             return src.Length <= numChars ? src : src.Substring(src.Length - numChars);
         }
+        /// <summary>
+        /// Return at most `numChars` from a string, retaining right-most characters first
+        /// </summary>
         public static string LimitRight(this string src, int numChars)
         {
             return LimitRight(numChars, src);

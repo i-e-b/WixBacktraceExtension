@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Xml;
     using Backtrace;
@@ -16,8 +17,14 @@
     {
         private readonly HashSet<AssemblyKey> _componentsGenerated;
         private readonly HashSet<string> _pathsInstalledTo;
+        /// <summary>
+        /// Matched prefixes, used for Wix injections
+        /// </summary>
         public override string[] Prefixes { get { return new[] { "publish", "build", "components" }; } }
 
+        /// <summary>
+        /// Init preprocessor.
+        /// </summary>
         public BacktracePreprocessorExtension()
         {
             _componentsGenerated = new HashSet<AssemblyKey>();
@@ -77,6 +84,10 @@
 
         bool ComponentActions(string pragma, QuotedArgsSplitter cleanArgs, XmlWriter writer)
         {
+            Debugger.Launch();
+
+            Debugger.Break();
+
             switch (pragma)
             {
                 case "allDependenciesOf":
