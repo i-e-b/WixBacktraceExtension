@@ -84,10 +84,6 @@
 
         bool ComponentActions(string pragma, QuotedArgsSplitter cleanArgs, XmlWriter writer)
         {
-            Debugger.Launch();
-
-            Debugger.Break();
-
             switch (pragma)
             {
                 case "allDependenciesOf":
