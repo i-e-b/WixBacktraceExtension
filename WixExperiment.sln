@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ThirdParty", "src\ThirdPart
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WiX Extensions", "WiX Extensions", "{51D0E440-746D-49A9-93D6-D8492CD00A1C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WixBacktraceExtension", "install\WixBacktraceExtension\WixBacktraceExtension.csproj", "{72FDD07A-B1D3-41DD-8465-DEC1CB704728}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WixBacktraceExtension", "src\WixBacktraceExtension\WixBacktraceExtension.csproj", "{72FDD07A-B1D3-41DD-8465-DEC1CB704728}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Tests", "_Tests", "{C7AACF38-4C77-4550-8EF2-44F72E9C4AE6}"
 EndProject

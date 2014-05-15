@@ -60,7 +60,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\install\WixBacktraceExtension\WixBacktraceExtension.csproj">
+    <ProjectReference Include="..\WixBacktraceExtension\WixBacktraceExtension.csproj">
       <Project>{72fdd07a-b1d3-41dd-8465-dec1cb704728}</Project>
       <Name>WixBacktraceExtension</Name>
     </ProjectReference>
