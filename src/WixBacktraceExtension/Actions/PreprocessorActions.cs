@@ -55,7 +55,9 @@
         {
             foreach (var dir in Directory.GetDirectories(target))
             {
-                var id = dir.Replace(baseDir, prefix).FilterJunk().ToUpperInvariant();
+                if (string.IsNullOrEmpty(dir)) continue;
+
+                var id = IdForDirectory(baseDir, prefix, dir);
                 var name = Path.GetFileName(dir);
 
                 writer.WriteStartElement("Directory");
@@ -103,7 +105,7 @@
         {
             foreach (var dir in Directory.GetDirectories(target))
             {
-                var directoryId = dir.Replace(baseDir, prefix).FilterJunk().ToUpperInvariant();
+                var directoryId = IdForDirectory(baseDir, prefix, dir);
 
                 WritePublishedFilesInDirectory(writer, dir, directoryId, writtenPaths, componentsGenerated, ignore);
                 BuildSiteComponentsRecursive(baseDir, dir, prefix, writer, writtenPaths, componentsGenerated, ignore);
@@ -121,7 +123,7 @@
                 var uniqueFileId = "pub" + NewUpperId();
                 var guid = NewUpperGuid();
 
-                var fileName = Path.GetFileName(filePath) ?? "";
+                var fileName = Path.GetFileName(filePath);
                 var installTarget = directoryId + "/" + fileName;
 
                 if (fileName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
@@ -300,6 +302,15 @@
         static string NewUpperId()
         {
             return "_" + Guid.NewGuid().ToString("N").ToUpper();
+        }
+
+        /// <summary>
+        /// Convert a directory path and prefix into a well-known directory identifier of 72 chars or less
+        /// </summary>
+        static string IdForDirectory(string baseDir, string prefix, string dir)
+        {
+            var len = 72 - prefix.Length;
+            return prefix + (dir.Replace(baseDir, "").FilterJunk().ToUpperInvariant().LimitRight(len));
         }
     }
 }
