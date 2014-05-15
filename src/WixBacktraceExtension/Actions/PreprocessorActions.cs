@@ -309,8 +309,7 @@
         /// </summary>
         static string IdForDirectory(string baseDir, string prefix, string dir)
         {
-            var len = 72 - prefix.Length;
-            return prefix + (dir.Replace(baseDir, "").FilterJunk().ToUpperInvariant().LimitRight(len));
+            return (dir.Replace(baseDir, prefix).FilterJunk().ToUpperInvariant().LimitRight(72));
         }
     }
 }
