@@ -120,13 +120,17 @@ in WiX when you re-arrange your content files!
             <?pragma components.publishedWebsiteIn "$(var.PublishTemp)"
                                                for "Release"
                            inDirectoriesWithPrefix "SITE"
-                                     rootDirectory "SITE_INSTALLFOLDER" ?>
+                                     rootDirectory "SITE_INSTALLFOLDER"
+                                  ignoreExtensions "packages.config|.pfx|.js.map" ?>
         </ComponentGroup>
 
    The `for` setting is optional (defaults to `"Release"`) and is used to select web.config transforms.
    Each content file from the published site will be matched to the directories created earlier, so the
    prefixes **must** match. Root elements (such as `Global.asax` and `web.config` are created in the 
    directory with id matching the `rootDirectory` parameter (this must be specified).
+
+   The `ignoreExtensions` list is optional, but if provided any files matching the list will be ignored,
+   will not be in the output and will not be installed.
 
    The web.config file will have transforms applied if possible. This is done **before** compiling the
    installer project, so any install-time changes must be done separately.

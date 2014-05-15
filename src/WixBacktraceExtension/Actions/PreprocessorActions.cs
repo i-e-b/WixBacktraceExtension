@@ -80,41 +80,46 @@
             var target = args.PrimaryRequired();
             var prefix = args.WithDefault("inDirectoriesWithPrefix", "").TrimEnd('_');
             var root = args.Required("rootDirectory");
+            var ignore = args.WithDefault("ignoreExtensions", "").SplitFileExtensions();
 
             // Special treatment for top-level files:
             foreach (var filePath in Directory.GetFiles(target, "*.*", SearchOption.TopDirectoryOnly))
             {
+                if (ignore.Any(filePath.EndsWith)) continue;
+
                 var sanitisedName = Path.GetFileName(filePath).FilterJunk();
-                var uniqueComponentId = prefix + "_component_" + sanitisedName;
-                var uniqueFileId = prefix + "_" + sanitisedName;
-                var guid = Guid.NewGuid().ToString().ToUpper();
+                var uniqueComponentId = StringExtensions.LimitRight(70, prefix + "_" + sanitisedName + "C");
+                var uniqueFileId = StringExtensions.LimitRight(70, prefix + "_" + sanitisedName);
+                var guid = NewUpperGuid();
                 writer.WriteRaw(String.Format(ComponentWithDirectoryTemplate, uniqueComponentId, guid, root, uniqueFileId, filePath, ConditionAlways));
             }
 
-
-            BuildSiteComponentsRecursive(target, target, prefix, writer, writtenPaths, componentsGenerated);
+            BuildSiteComponentsRecursive(target, target, prefix, writer, writtenPaths, componentsGenerated, ignore);
 
             return true;
         }
 
-        static void BuildSiteComponentsRecursive(string baseDir, string target, string prefix, XmlWriter writer, ICollection<string> writtenPaths, ICollection<AssemblyKey> componentsGenerated)
+        static void BuildSiteComponentsRecursive(string baseDir, string target, string prefix, XmlWriter writer, ICollection<string> writtenPaths, ICollection<AssemblyKey> componentsGenerated, ICollection<string> ignore)
         {
             foreach (var dir in Directory.GetDirectories(target))
             {
                 var directoryId = dir.Replace(baseDir, prefix).FilterJunk().ToUpperInvariant();
 
-                WritePublishedFilesInDirectory(writer, dir, directoryId, writtenPaths, componentsGenerated);
-                BuildSiteComponentsRecursive(baseDir, dir, prefix, writer, writtenPaths, componentsGenerated);
+                WritePublishedFilesInDirectory(writer, dir, directoryId, writtenPaths, componentsGenerated, ignore);
+                BuildSiteComponentsRecursive(baseDir, dir, prefix, writer, writtenPaths, componentsGenerated, ignore);
             }
         }
 
-        static void WritePublishedFilesInDirectory(XmlWriter writer, string dir, string directoryId, ICollection<string> writtenPaths, ICollection<AssemblyKey> componentsGenerated)
+        static void WritePublishedFilesInDirectory(XmlWriter writer, string dir, string directoryId, ICollection<string> writtenPaths, ICollection<AssemblyKey> componentsGenerated, ICollection<string> ignore)
         {
             foreach (var filePath in Directory.GetFiles(dir, "*.*", SearchOption.TopDirectoryOnly))
             {
-                var uniqueComponentId = "pubcmp_" + Guid.NewGuid().ToString("N").ToUpper();
-                var uniqueFileId = "pub_" + Guid.NewGuid().ToString("N").ToUpper();
-                var guid = Guid.NewGuid().ToString().ToUpper();
+                if (ignore.Any(filePath.EndsWith)) continue;
+
+                var finalLocation = WorkAround255CharPathLimit(filePath);
+                var uniqueComponentId = "pubc" + NewUpperId();
+                var uniqueFileId = "pub" + NewUpperId();
+                var guid = NewUpperGuid();
 
                 var fileName = Path.GetFileName(filePath) ?? "";
                 var installTarget = directoryId + "/" + fileName;
@@ -127,7 +132,7 @@
                 if (writtenPaths.Contains(installTarget)) continue;
                 writtenPaths.Add(installTarget);
 
-                writer.WriteRaw(String.Format(ComponentWithDirectoryTemplate, uniqueComponentId, guid, directoryId, uniqueFileId, filePath, ConditionAlways));
+                writer.WriteRaw(String.Format(ComponentWithDirectoryTemplate, uniqueComponentId, guid, directoryId, uniqueFileId, finalLocation, ConditionAlways));
             }
         }
 
@@ -236,7 +241,7 @@
 
             writer.WriteRaw(String.Format(template,
                 StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency)),
-                Guid.NewGuid().ToString().ToUpper(),
+                NewUpperGuid(),
                 directory,
                 StringExtensions.LimitRight(70, AssemblyKey.FileId(dependency)),
                 finalLocation,
@@ -250,14 +255,18 @@
             var template = (directory != null) ? (ComponentWithDirectoryTemplate) : (ComponentNoDirectoryTemplate);
 
             writer.WriteRaw(String.Format(template,
-                StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency) + "_" + Guid.NewGuid().ToString("N")).ToUpper(),
-                Guid.NewGuid().ToString().ToUpper(),
+                StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency) + NewUpperId()).ToUpper(),
+                NewUpperGuid(),
                 directory,
-                StringExtensions.LimitRight(70, AssemblyKey.FileId(dependency) + "_" + Guid.NewGuid().ToString("N")).ToUpper(),
+                StringExtensions.LimitRight(70, AssemblyKey.FileId(dependency) + NewUpperId()).ToUpper(),
                 finalLocation,
                 condition));
         }
 
+        /// <summary>
+        /// If src file path is less than 250 charactes, it is returned as-is.
+        /// <para>Otherwise, it is copied to another location with a shorter path, and that path is returned.</para>
+        /// </summary>
         static string WorkAround255CharPathLimit(string src)
         {
             lock (Lock)
@@ -267,7 +276,7 @@
 
                 if (fileName == null) throw new Exception("Dependency had no file name?");
 
-                if (loc.Length <= 200)
+                if (loc.Length <= 250)
                 {
                     return loc;
                 }
@@ -280,6 +289,17 @@
 
                 return dst;
             }
+        }
+
+        /// <summary> New guid, with '-', all upper case </summary>
+        static string NewUpperGuid()
+        {
+            return Guid.NewGuid().ToString().ToUpper();
+        }
+        /// <summary> New guid, without '-', prepended with '_', all upper case </summary>
+        static string NewUpperId()
+        {
+            return "_" + Guid.NewGuid().ToString("N").ToUpper();
         }
     }
 }

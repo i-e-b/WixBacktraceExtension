@@ -1,11 +1,27 @@
 ﻿namespace WixBacktraceExtension.Extensions
 {
+    using System;
+    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
     using System.Text;
 
     public static partial class StringExtensions
     {
+        /// <summary>
+        /// Take a delimited string of file extensions and return a collection that
+        /// can be compared to the output of `Path.GetExtension`
+        /// </summary>
+        /// <param name="patterns">a string of file extensions delimited by '|' or ','</param>
+        public static ICollection<string> SplitFileExtensions(this string patterns)
+        {
+            return patterns
+                .Split(new[] { "|", "," }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(p => p.Trim('*'))
+                .Select(p => (p.Contains(".")) ? p : "." + p)
+                .ToArray();
+        }
+
         /// <summary>
         /// Remove non file name characters  from a string
         /// </summary>

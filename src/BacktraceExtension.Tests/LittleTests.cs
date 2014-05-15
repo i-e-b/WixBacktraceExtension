@@ -30,5 +30,12 @@
             Assert.That(Path.GetExtension(@"C:\temp\myfile.DLL"), Is.EqualTo(".DLL"));
         }
 
+        [Test]
+        public void file_extension_splitter()
+        {
+            Assert.That("dll,*.txt|.xml".SplitFileExtensions(), Is.EquivalentTo(new[] { ".dll", ".txt", ".xml" }));
+        }
+
+
     }
 }

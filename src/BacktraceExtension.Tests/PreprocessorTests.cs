@@ -19,7 +19,7 @@
         [SetUp]
         public void setup()
         {
-            _subject = new ReferenceBuilder(@"C:\Projects\WixExperiment\src\WixExperimentApp\bin\Debug\WixExperimentApp.exe");
+            _subject = new ReferenceBuilder(@"C:\Gits\WixExperiment\src\WixExperimentApp\bin\Debug\WixExperimentApp.exe");
         }
 
         [Test]
@@ -33,9 +33,9 @@
         [Test]
         public void should_get_assembly_references ()
         {
-            var result = _subject.NonGacDependencies().Select(a=>ReferenceBuilder.GuessName(a.ToString())).ToList();
+            var result = _subject.NonGacDependencies().Select(a => ReferenceBuilder.GuessName(a.ToString())).ToList();
 
-            Console.WriteLine(string.Join(",",result));
+            Console.WriteLine(string.Join(",", result));
 
             Assert.That(result, Contains.Item("LessStupidPath"), "Missing NuGet dependency");
             Assert.That(result, Contains.Item("ThirdParty"), "Missing direct dependency");

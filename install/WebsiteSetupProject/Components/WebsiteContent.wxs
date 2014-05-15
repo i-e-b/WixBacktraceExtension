@@ -2,12 +2,16 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <?include $(sys.CURRENTDIR)Definitions.wxi ?>
 
-	<Fragment>
+  <Fragment>
     <ComponentGroup Id="WebsiteContent">
       <!-- Add published site files -->
       <!-- the pragma below sets all the correct directories, so we must NOT have a directory on the component group -->
       <?pragma publish.webSiteProject "$(var.SiteProject)" to "$(var.PublishTemp)" for "Release"?>
-      <?pragma components.publishedWebsiteIn "$(var.PublishTemp)" inDirectoriesWithPrefix "SITE" rootDirectory "SITE_INSTALLFOLDER" ?>
+      <?pragma components.publishedWebsiteIn "$(var.PublishTemp)" 
+                                         for "Release"
+                     inDirectoriesWithPrefix "SITE"
+                               rootDirectory "SITE_INSTALLFOLDER"
+                            ignoreExtensions "packages.config|.pfx|.js.map"?>
     </ComponentGroup>
-	</Fragment>
+  </Fragment>
 </Wix>
