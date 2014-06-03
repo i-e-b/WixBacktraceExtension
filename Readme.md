@@ -88,6 +88,9 @@ See `AppSetupProject` for details.
   main executable first, before any plugins. `components.allDependenciesOf` will only *store* one
   copy of each version of a dependency, but will copy it as many times as required to deliver each
   target its own set of dependencies.
+* If you have multiple trees of dependencies, you can add the `dependencySet = "name"` parameter to `components.uniqueDependenciesOf`.
+  Each dependency set is calculated separately. All components without an explicit dependency set name
+  will go in a shared default set.
 * If you need to use double quotes (`"`) in a backtrace pragma string, use a backslash to escape (`\"`)
 
 Backtracing for WebSite projects
@@ -152,6 +155,9 @@ in WiX when you re-arrange your content files!
 * Files in the site root are generated with guessable names: `web.config` will have file `{prefix}_web_config`
   and component `{prefix}_component_web_config`. This is to enable post-install changes (see the example project).
 * If you need to use double quotes (`"`) in a backtrace pragma string, use a backslash to escape (`\"`)
+* If you have multiple trees of dependencies, you can add the `dependencySet = "name"` parameter to `components.uniqueDependenciesOf`.
+  Each dependency set is calculated separately. All components without an explicit dependency set name
+  will go in a shared default set.
 
 Bringing in floating DLLs and their dependencies
 ------------------------------------------------

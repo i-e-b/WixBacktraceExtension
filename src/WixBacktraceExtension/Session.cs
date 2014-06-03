@@ -7,6 +7,7 @@
     using System.Xml.Serialization;
     using global::WixBacktraceExtension.Backtrace;
     using global::WixBacktraceExtension.Extensions;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Saves and restores Wix processing sessions
@@ -32,22 +33,19 @@
         /// <summary>
         /// Save state to file
         /// </summary>
-        public static void Save(ICollection<AssemblyKey> componentsGenerated, ICollection<string> pathsInstalledTo)
+        public static void Save(Dictionary<string, HashSet<AssemblyKey>> componentsGenerated, Dictionary<string, HashSet<string>> pathsInstalledTo)
         {
             if (!Directory.Exists(TempFolder())) Directory.CreateDirectory(TempFolder());
 
             var sessionFile = Path.Combine(TempFolder(), "session.txt");
-            var ser = new XmlSerializer(typeof(SessionData));
-
-            using (var fs = File.Create(sessionFile))
-            {
-                ser.Serialize(fs, new SessionData
+            var data = new SessionData
                 {
                     WriteTime = DateTime.UtcNow,
-                    Components = componentsGenerated.Select(ak=>ak.ToString()).ToList(),
-                    Paths = pathsInstalledTo.ToList()
-                });
-            }
+                    Components = componentsGenerated,
+                    Paths = pathsInstalledTo
+                };
+
+            File.WriteAllText(sessionFile, JsonConvert.SerializeObject(data));
         }
 
         /// <summary>
@@ -58,18 +56,13 @@
         /// <summary>
         /// Load state from file
         /// </summary>
-        public static void Load(ICollection<AssemblyKey> componentsGenerated, ICollection<string> pathsInstalledTo)
+        public static void Load(Dictionary<string, HashSet<AssemblyKey>> componentsGenerated, Dictionary<string, HashSet<string>> pathsInstalledTo)
         {
             if (!Directory.Exists(TempFolder())) return;
             var sessionFile = Path.Combine(TempFolder(), "session.txt");
             if (!File.Exists(sessionFile)) return;
 
-            var ser = new XmlSerializer(typeof(SessionData));
-            SessionData data;
-            using (var fs = File.Open(sessionFile, FileMode.Open))
-            {
-                data = (SessionData)ser.Deserialize(fs);
-            }
+            var data = JsonConvert.DeserializeObject<SessionData>(File.ReadAllText(sessionFile));
 
             if (!AlwaysLoad &&
                    (NoBuildOutputs() || SessionIsTooOld(data))
@@ -81,14 +74,16 @@
                 return;
             }
 
-            foreach (var ak in data.Components.Select(s => new AssemblyKey(s)))
+            componentsGenerated.Clear();
+            foreach (var kvp in data.Components)
             {
-                if (!componentsGenerated.Contains(ak)) componentsGenerated.Add(ak);
+                componentsGenerated.Add(kvp.Key, kvp.Value);
             }
-            foreach (var path in data.Paths)
+
+            pathsInstalledTo.Clear();
+            foreach (var kvp in data.Paths)
             {
-                if (!pathsInstalledTo.Contains(path)) pathsInstalledTo.Add(path);
-                
+                pathsInstalledTo.Add(kvp.Key, kvp.Value);
             }
         }
 
@@ -152,11 +147,11 @@
             /// <summary>
             /// Written components
             /// </summary>
-            public List<string> Components { get; set; }
+            public Dictionary<string, HashSet<AssemblyKey>> Components { get; set; }
             /// <summary>
             /// Written paths
             /// </summary>
-            public List<string> Paths { get; set; }
+            public Dictionary<string, HashSet<string>> Paths { get; set; }
         }
     }
 }

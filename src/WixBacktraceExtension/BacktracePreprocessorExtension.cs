@@ -2,34 +2,49 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Xml;
-    using Backtrace;
-    using Actions;
-    using SitePublication;
+    using global::WixBacktraceExtension.Actions;
+    using global::WixBacktraceExtension.Backtrace;
+    using global::WixBacktraceExtension.SitePublication;
     using Microsoft.Tools.WindowsInstallerXml;
 
     /// <summary>
     /// Backtrace extension interface
     /// </summary>
     public class BacktracePreprocessorExtension : PreprocessorExtension
-    {
-        private readonly HashSet<AssemblyKey> _componentsGenerated;
-        private readonly HashSet<string> _pathsInstalledTo;
-        /// <summary>
-        /// Matched prefixes, used for Wix injections
-        /// </summary>
-        public override string[] Prefixes { get { return new[] { "publish", "build", "components" }; } }
+    {        private readonly Dictionary<string, HashSet<AssemblyKey>> _componentSets;
+        private readonly Dictionary<string, HashSet<string>> _installedPathsSets;
 
         /// <summary>
         /// Init preprocessor.
         /// </summary>
         public BacktracePreprocessorExtension()
         {
-            _componentsGenerated = new HashSet<AssemblyKey>();
-            _pathsInstalledTo = new HashSet<string>();
+            _componentSets = new Dictionary<string, HashSet<AssemblyKey>>();
+            _installedPathsSets = new Dictionary<string, HashSet<string>>();
         }
+
+        /// <summary>Set of components gathered to for a dependency set. Used to prevent duplicates</summary>
+        HashSet<AssemblyKey> ComponentsGenerated(string dependencySet)
+        {
+            var key = dependencySet ?? "default";
+            if (!_componentSets.ContainsKey(key)) { _componentSets.Add(key, new HashSet<AssemblyKey>()); }
+            return _componentSets[key];
+        }
+
+        /// <summary>Set of paths installed to for a dependency set. Used to prevent duplicates</summary>
+        HashSet<string> PathsInstalledTo(string dependencySet)
+        {
+            var key = dependencySet ?? "default";
+            if (!_installedPathsSets.ContainsKey(key)) { _installedPathsSets.Add(key, new HashSet<string>()); }
+            return _installedPathsSets[key];
+        }
+
+        /// <summary>
+        /// Matched prefixes, used for Wix injections
+        /// </summary>
+        public override string[] Prefixes { get { return new[] { "publish", "build", "components" }; } }
 
         /// <summary>
         /// Prefixed variables, called like $(prefix.name)
@@ -84,25 +99,27 @@
 
         bool ComponentActions(string pragma, QuotedArgsSplitter cleanArgs, XmlWriter writer)
         {
+            var setKey = cleanArgs.WithDefault("dependencySet", "default");
+
             switch (pragma)
             {
                 case "allDependenciesOf":
-                    return PreprocessorActions.BuildComponents(_componentsGenerated, cleanArgs, writer, _pathsInstalledTo, copyDependencies: true, includeTarget: false);
+                    return PreprocessorActions.BuildComponents(ComponentsGenerated(setKey), cleanArgs, writer, PathsInstalledTo(setKey), copyDuplicateDependencies: true, includeTarget: false);
 
                 case "uniqueDependenciesOf":
-                    return PreprocessorActions.BuildComponents(_componentsGenerated, cleanArgs, writer, _pathsInstalledTo, copyDependencies: false, includeTarget: false);
+                    return PreprocessorActions.BuildComponents(ComponentsGenerated(setKey), cleanArgs, writer, PathsInstalledTo(setKey), copyDuplicateDependencies: false, includeTarget: false);
 
                 case "targetAndAllDependenciesOf":
-                    return PreprocessorActions.BuildComponents(_componentsGenerated, cleanArgs, writer, _pathsInstalledTo, copyDependencies: true, includeTarget: true);
+                    return PreprocessorActions.BuildComponents(ComponentsGenerated(setKey), cleanArgs, writer, PathsInstalledTo(setKey), copyDuplicateDependencies: true, includeTarget: true);
 
                 case "targetAndUniqueDependenciesOf":
-                    return PreprocessorActions.BuildComponents(_componentsGenerated, cleanArgs, writer, _pathsInstalledTo, copyDependencies: false, includeTarget: true);
+                    return PreprocessorActions.BuildComponents(ComponentsGenerated(setKey), cleanArgs, writer, PathsInstalledTo(setKey), copyDuplicateDependencies: false, includeTarget: true);
 
                 case "transformedConfigOf":
                     return PreprocessorActions.TransformConfiguration(cleanArgs, writer);
 
                 case "publishedWebsiteIn":
-                    return PreprocessorActions.BuildPublishedWebsiteComponents(cleanArgs, writer, _pathsInstalledTo, _componentsGenerated);
+                    return PreprocessorActions.BuildPublishedWebsiteComponents(cleanArgs, writer, PathsInstalledTo(setKey), ComponentsGenerated(setKey));
 
                 default:
                     return false;
@@ -138,7 +155,7 @@
         /// </summary>
         public override void InitializePreprocess()
         {
-            Session.Load(_componentsGenerated, _pathsInstalledTo);
+            Session.Load(_componentSets, _installedPathsSets);
             base.InitializePreprocess();
         }
 
@@ -147,7 +164,7 @@
         /// </summary>
         public override void FinalizePreprocess()
         {
-            Session.Save(_componentsGenerated, _pathsInstalledTo);
+            Session.Save(_componentSets, _installedPathsSets);
             base.FinalizePreprocess();
         }
     }

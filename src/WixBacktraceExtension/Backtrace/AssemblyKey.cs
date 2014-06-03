@@ -4,10 +4,12 @@ namespace WixBacktraceExtension.Backtrace
     using System.IO;
     using System.Linq;
     using System.Reflection;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// "name, namespace, version|filepath" for an Assembly
     /// </summary>
+    [JsonConverter(typeof(AssemblyKeyConverter))]
     public class AssemblyKey : IEquatable<AssemblyKey>
     {
         /// <summary>
@@ -123,5 +125,43 @@ namespace WixBacktraceExtension.Backtrace
         /// Target path of file
         /// </summary>
         public string TargetFilePath { get { return FilePath(_key); } }
+    }
+
+    /// <summary>
+    /// Serialiser for AssemblyKeys
+    /// </summary>
+    public class AssemblyKeyConverter : JsonConverter
+    {
+        /// <summary>
+        /// Determines whether this instance can convert the specified object type.
+        /// </summary>
+        public override bool CanConvert(Type objectType)
+        {
+            return true;
+        }
+
+        /// <summary>
+        /// Writes the JSON representation of the object.
+        /// </summary>
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            writer.WriteValue(value.ToString());
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="T:Newtonsoft.Json.JsonConverter"/> can read JSON.
+        /// </summary>
+        public override bool CanRead
+        {
+            get { return true; }
+        }
+
+        /// <summary>
+        /// Reads the JSON representation of the object.
+        /// </summary>
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            return new AssemblyKey(reader.Value.ToString());
+        }
     }
 }
