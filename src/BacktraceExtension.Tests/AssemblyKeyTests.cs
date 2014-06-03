@@ -38,18 +38,18 @@
         public void can_get_component_key_from_assembly_key_string()
         {
             const string keystring = @"BacktraceExtension.Tests, Version=1.0.0.0|C:\path\file.dll";
-            const string expected = @"cmp_BacktraceExtension_Tests_1_0_0_0";
+            const string expected = @"cmpset_BacktraceExtension_Tests_1_0_0_0";
 
-            Assert.That(AssemblyKey.ComponentId(keystring), Is.EqualTo(expected));
+            Assert.That(AssemblyKey.ComponentId(keystring, "set"), Is.EqualTo(expected));
         }
 
         [Test]
         public void can_get_file_key_from_assembly_key_string()
         {
             const string keystring = @"BacktraceExtension.Tests, Version=1.0.0.0|C:\path\file.dll";
-            const string expected = @"file_BacktraceExtension_Tests_1_0_0_0";
+            const string expected = @"fileset_BacktraceExtension_Tests_1_0_0_0";
 
-            Assert.That(AssemblyKey.FileId(keystring), Is.EqualTo(expected));
+            Assert.That(AssemblyKey.FileId(keystring, "set"), Is.EqualTo(expected));
         }
 
         [Test]

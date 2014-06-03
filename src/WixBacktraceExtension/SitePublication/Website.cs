@@ -1,6 +1,5 @@
 ﻿namespace WixBacktraceExtension.SitePublication
 {
-    using System;
     using System.IO;
     using System.Linq;
     using System.Xml;
@@ -29,12 +28,9 @@
             if (!File.Exists(projectFile)) return true;
             if (!Directory.Exists(tempDir)) return true;
 
-
             BuildAndPublishProject(writer, tempDir, config, projectFile);
             MoveFilesToCorrectLocation(tempDir);
             TransformConfiguration(tempDir, config);
-
-            //File.AppendAllText(@"C:\Temp\log.txt", "\r\nPublish complete: " + tempDir);
 
             return true;
         }
@@ -93,11 +89,11 @@
 
             if (success)
             {
-                writer.WriteComment(" Publish succeeded, logs in " + tempDir.Replace("--", " - -"));
+                writer.WriteComment(" Publish succeeded, logs in " + tempDir.Replace("--", "_"));
             }
             else
             {
-                throw new Exception("Publish failure: see \"" + logFile + "\" for details");
+                writer.WriteRaw("<?error WixBacktraceExtension: Could publish website. Logs at " + tempDir.Replace("--", "_") + "\\publish.log ?>");
             }
 
             engine.UnloadAllProjects();

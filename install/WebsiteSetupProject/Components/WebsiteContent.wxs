@@ -5,7 +5,7 @@
   <Fragment>
     <ComponentGroup Id="WebsiteContent">
       <!-- Add published site files -->
-      <!-- the pragma below sets all the correct directories, so we must NOT have a directory on the component group -->
+      <!-- the pragma below sets all the correct directories, so we must NOT have a directory on the component group-->
       <?pragma publish.webSiteProject "$(var.SiteProject)" to "$(var.PublishTemp)" for "Release"?>
       <?pragma components.publishedWebsiteIn "$(var.PublishTemp)" 
                                          for "Release"

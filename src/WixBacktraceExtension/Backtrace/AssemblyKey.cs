@@ -21,7 +21,7 @@ namespace WixBacktraceExtension.Backtrace
         /// <filterpriority>2</filterpriority>
         public override int GetHashCode()
         {
-            return (_key != null ? ComponentId(_key).GetHashCode() : 0);
+            return (_key != null ? ComponentId(_key, "").GetHashCode() : 0);
         }
 
         readonly string _key;
@@ -58,7 +58,7 @@ namespace WixBacktraceExtension.Backtrace
         /// <param name="other">An object to compare with this object.</param>
         public bool Equals(AssemblyKey other)
         {
-            return ComponentId(_key) == ComponentId(other._key);
+            return ComponentId(_key, "") == ComponentId(other._key, "");
         }
 
         /// <summary>
@@ -88,10 +88,10 @@ namespace WixBacktraceExtension.Backtrace
         /// <summary>
         /// turn an assembly key string into a unique component key name
         /// </summary>
-        public static string ComponentId(string keystring)
+        public static string ComponentId(string keystring, string setName)
         {
             var bits = keystring.Split('|');
-            return "cmp_" + bits[0].Replace(", Version=", "_").Replace(".", "_");
+            return "cmp" + (setName ?? "") + "_" + bits[0].Replace(", Version=", "_").Replace(".", "_");
         }
 
         /// <summary>
@@ -105,10 +105,10 @@ namespace WixBacktraceExtension.Backtrace
         /// <summary>
         /// turn an assembly key string into a unique file key name
         /// </summary>
-        public static string FileId(string keystring)
+        public static string FileId(string keystring, string setName)
         {
             var bits = keystring.Split('|');
-            return "file_" + bits[0].Replace(", Version=", "_").Replace(".", "_");
+            return "file" + (setName ?? "") + "_" + bits[0].Replace(", Version=", "_").Replace(".", "_");
         }
 
         /// <summary>

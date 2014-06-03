@@ -101,9 +101,7 @@
     <MergeAsm Include="$(TargetDir)\WixBacktraceExtension.dll" />
     <MergeAsm Include="$(TargetDir)\Microsoft.Web.XmlTransform.dll" />
     <MergeAsm Include="$(TargetDir)\Mono.Cecil.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Actions\Stylesheet.css" />
+    <MergeAsm Include="$(TargetDir)\Newtonsoft.Json.dll" />
   </ItemGroup>
   <Target Name="AfterBuild">
     <ILMerge InputAssemblies="@(MergeAsm)" OutputFile="$(TargetDir)..\WixBacktraceExtension.dll" TargetKind="Dll" />

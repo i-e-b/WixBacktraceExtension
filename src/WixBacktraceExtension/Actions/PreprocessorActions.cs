@@ -192,6 +192,7 @@
             var target = args.PrimaryRequired();
             var directory = args.WithDefault("in", null);
             var condition = args.WithDefault("if", "1");
+            var setName = args.WithDefault("dependencySet", "");
 
             if (!File.Exists(target))
             {
@@ -222,45 +223,45 @@
                 {
                     if (copyDuplicateDependencies)
                     {
-                        WriteCopy(writer, directory, dependency, condition);
+                        WriteCopy(writer, directory, dependency, condition, setName);
                     }
                 }
                 else
                 {
                     componentsGenerated.Add(dependencyKey);
-                    WriteOriginal(writer, dependency, directory, condition);
+                    WriteOriginal(writer, dependency, directory, condition, setName);
                 }
             }
 
             return true;
         }
 
-        static void WriteOriginal(XmlWriter writer, string dependency, string directory, string condition)
+        static void WriteOriginal(XmlWriter writer, string dependency, string directory, string condition, string setName)
         {
             var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
 
             var template = (directory != null) ? (ComponentWithDirectoryTemplate) : (ComponentNoDirectoryTemplate);
 
             writer.WriteRaw(String.Format(template,
-                StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency)),
+                StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency, setName)),
                 NewUpperGuid(),
                 directory,
-                StringExtensions.LimitRight(70, AssemblyKey.FileId(dependency)),
+                StringExtensions.LimitRight(70, AssemblyKey.FileId(dependency, setName)),
                 finalLocation,
                 condition));
         }
 
-        static void WriteCopy(XmlWriter writer, string directory, string dependency, string condition)
+        static void WriteCopy(XmlWriter writer, string directory, string dependency, string condition, string setName)
         {
             var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
 
             var template = (directory != null) ? (ComponentWithDirectoryTemplate) : (ComponentNoDirectoryTemplate);
 
             writer.WriteRaw(String.Format(template,
-                StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency) + NewUpperId()).ToUpper(),
+                StringExtensions.LimitRight(70, AssemblyKey.ComponentId(dependency, setName) + NewUpperId()).ToUpper(),
                 NewUpperGuid(),
                 directory,
-                StringExtensions.LimitRight(70, AssemblyKey.FileId(dependency) + NewUpperId()).ToUpper(),
+                StringExtensions.LimitRight(70, AssemblyKey.FileId(dependency, setName) + NewUpperId()).ToUpper(),
                 finalLocation,
                 condition));
         }
@@ -309,7 +310,7 @@
         /// </summary>
         static string IdForDirectory(string baseDir, string prefix, string dir)
         {
-            return (dir.Replace(baseDir, prefix).FilterJunk().ToUpperInvariant().LimitRight(72));
+            return (dir.Replace(baseDir, prefix).FilterJunk().ToUpperInvariant().Replace("__","_").LimitRight(72));
         }
     }
 }

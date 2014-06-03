@@ -5,5 +5,5 @@
   <?define SiteProject="$(var.SampleMvcApplication.ProjectPath)" ?>
 
   <?define Plugin="$(var.OptionalPlugin.TargetPath)" ?>
-  <?define PublishTemp=$(publish.tempDirectory)?>
+  <?define PublishTemp="$(publish.tempDirectory)"?>
 </Include>
