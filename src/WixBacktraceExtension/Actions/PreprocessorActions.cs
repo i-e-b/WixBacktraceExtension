@@ -77,7 +77,7 @@
         /// Root directory (for files at the top level of the site folder) should be declared directly in the .wxs file and passed
         /// to this pragma in full.
         /// </summary>
-        public static bool BuildPublishedWebsiteComponents(QuotedArgsSplitter args, XmlWriter writer, ICollection<string> writtenPaths, ICollection<AssemblyKey> componentsGenerated)
+        public static bool BuildPublishedWebsiteComponents(string targetPath, QuotedArgsSplitter args, XmlWriter writer, ICollection<string> writtenPaths, ICollection<AssemblyKey> componentsGenerated)
         {
             var target = args.PrimaryRequired();
             var prefix = args.WithDefault("inDirectoriesWithPrefix", "").TrimEnd('_');
@@ -96,29 +96,29 @@
                 writer.WriteRaw(String.Format(ComponentWithDirectoryTemplate, uniqueComponentId, guid, root, uniqueFileId, filePath, ConditionAlways));
             }
 
-            BuildSiteComponentsRecursive(target, target, prefix, writer, writtenPaths, componentsGenerated, ignore);
+            BuildSiteComponentsRecursive(targetPath, target, target, prefix, writer, writtenPaths, componentsGenerated, ignore);
 
             return true;
         }
 
-        static void BuildSiteComponentsRecursive(string baseDir, string target, string prefix, XmlWriter writer, ICollection<string> writtenPaths, ICollection<AssemblyKey> componentsGenerated, ICollection<string> ignore)
+        static void BuildSiteComponentsRecursive(string targetpath, string baseDir, string target, string prefix, XmlWriter writer, ICollection<string> writtenPaths, ICollection<AssemblyKey> componentsGenerated, ICollection<string> ignore)
         {
             foreach (var dir in Directory.GetDirectories(target))
             {
                 var directoryId = IdForDirectory(baseDir, prefix, dir);
 
-                WritePublishedFilesInDirectory(writer, dir, directoryId, writtenPaths, componentsGenerated, ignore);
-                BuildSiteComponentsRecursive(baseDir, dir, prefix, writer, writtenPaths, componentsGenerated, ignore);
+                WritePublishedFilesInDirectory(targetpath, writer, dir, directoryId, writtenPaths, componentsGenerated, ignore);
+                BuildSiteComponentsRecursive(targetpath, baseDir, dir, prefix, writer, writtenPaths, componentsGenerated, ignore);
             }
         }
 
-        static void WritePublishedFilesInDirectory(XmlWriter writer, string dir, string directoryId, ICollection<string> writtenPaths, ICollection<AssemblyKey> componentsGenerated, ICollection<string> ignore)
+        static void WritePublishedFilesInDirectory(string targetPath, XmlWriter writer, string dir, string directoryId, ICollection<string> writtenPaths, ICollection<AssemblyKey> componentsGenerated, ICollection<string> ignore)
         {
             foreach (var filePath in Directory.GetFiles(dir, "*.*", SearchOption.TopDirectoryOnly))
             {
                 if (ignore.Any(filePath.EndsWith)) continue;
 
-                var finalLocation = WorkAround255CharPathLimit(filePath);
+                var finalLocation = WorkAround255CharPathLimit(targetPath, filePath);
                 var uniqueComponentId = "pubc" + NewUpperId();
                 var uniqueFileId = "pub" + NewUpperId();
                 var guid = NewUpperGuid();
@@ -180,14 +180,14 @@
         /// Build file components for a .Net assembly's dependencies.
         /// <para>This DOES NOT include the target assembly itself.</para>
         /// </summary>
+        /// <param name="targetPath">Working directory path for backtrace session</param>
         /// <param name="componentsGenerated">mutable list of components that have been build (as they must be unique)</param>
         /// <param name="args">argument syntax is `build.componentsFor "c:\path\to\assembly.exe" in "InstallDirID"`. The install directory should be declared in the .wxs file.</param>
         /// <param name="writer">output writer</param>
         /// <param name="copyDuplicateDependencies">if true, all dependencies will be copied to target folder. Otherwise, only dependencies not included elsewhere will be added.</param>
         /// <param name="writtenPaths">Path that have files already (will be skipped), in the format `{DirectoryId}/{installed file name}`</param>
         /// <param name="includeTarget">If true, the target will have a component generated. If false, only dependencies will get a component</param>
-        public static bool BuildComponents(ICollection<AssemblyKey> componentsGenerated, QuotedArgsSplitter args, XmlWriter writer, ICollection<string> writtenPaths,
-            bool copyDuplicateDependencies, bool includeTarget)
+        public static bool BuildComponents(string targetPath, ICollection<AssemblyKey> componentsGenerated, QuotedArgsSplitter args, XmlWriter writer, ICollection<string> writtenPaths, bool copyDuplicateDependencies, bool includeTarget)
         {
             var target = args.PrimaryRequired();
             var directory = args.WithDefault("in", null);
@@ -216,29 +216,29 @@
                 var installTarget = directory + "/" + Path.GetFileName(AssemblyKey.FilePath(dependency));
                 if (writtenPaths.Contains(installTarget)) continue; // can't write the same target twice.
                 writtenPaths.Add(installTarget);
-
+                
                 // Components should be unique to the .msi (can be reset with `components.resetUniqueFilter` pragma call)
                 // Component id MUST be unique to the .msi
                 if (componentsGenerated.Contains(dependencyKey))
                 {
                     if (copyDuplicateDependencies)
                     {
-                        WriteCopy(writer, directory, dependency, condition, setName);
+                        WriteCopy(targetPath, writer, directory, dependency, condition, setName);
                     }
                 }
                 else
                 {
                     componentsGenerated.Add(dependencyKey);
-                    WriteOriginal(writer, dependency, directory, condition, setName);
+                    WriteOriginal(targetPath, writer, dependency, directory, condition, setName);
                 }
             }
 
             return true;
         }
 
-        static void WriteOriginal(XmlWriter writer, string dependency, string directory, string condition, string setName)
+        static void WriteOriginal(string targetPath, XmlWriter writer, string dependency, string directory, string condition, string setName)
         {
-            var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
+            var finalLocation = WorkAround255CharPathLimit(targetPath, AssemblyKey.FilePath(dependency));
 
             var template = (directory != null) ? (ComponentWithDirectoryTemplate) : (ComponentNoDirectoryTemplate);
 
@@ -251,9 +251,9 @@
                 condition));
         }
 
-        static void WriteCopy(XmlWriter writer, string directory, string dependency, string condition, string setName)
+        static void WriteCopy(string targetPath, XmlWriter writer, string directory, string dependency, string condition, string setName)
         {
-            var finalLocation = WorkAround255CharPathLimit(AssemblyKey.FilePath(dependency));
+            var finalLocation = WorkAround255CharPathLimit(targetPath, AssemblyKey.FilePath(dependency));
 
             var template = (directory != null) ? (ComponentWithDirectoryTemplate) : (ComponentNoDirectoryTemplate);
 
@@ -270,7 +270,7 @@
         /// If src file path is less than 250 charactes, it is returned as-is.
         /// <para>Otherwise, it is copied to another location with a shorter path, and that path is returned.</para>
         /// </summary>
-        static string WorkAround255CharPathLimit(string src)
+        static string WorkAround255CharPathLimit(string targetPath, string src)
         {
             lock (Lock)
             {
@@ -283,8 +283,8 @@
                 {
                     return loc;
                 }
-
-                var dir = Path.Combine(Session.TempFolder(), "longpath");
+                
+                var dir = Path.Combine(targetPath, "longpath");
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 var dst = Path.Combine(dir, fileName);
 

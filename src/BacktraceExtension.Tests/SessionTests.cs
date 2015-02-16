@@ -1,4 +1,6 @@
-﻿namespace BacktraceExtension.Tests
+﻿using System.IO;
+
+namespace BacktraceExtension.Tests
 {
     using System.Collections.Generic;
     using NUnit.Framework;
@@ -25,14 +27,15 @@
                 {"default", Expected_Paths},
                 {"other", Expected_Paths}
             };
-
-            Session.Save(Expected_Component_Set, Expected_Paths_Set);
-
+            
             var Actual_Components =  new Dictionary<string, HashSet<AssemblyKey>>();
             var Actual_Paths =  new Dictionary<string, HashSet<string>>();
+            var tempFolder = Directory.GetCurrentDirectory();
+            
+            Session.Save(tempFolder, Expected_Component_Set, Expected_Paths_Set);
 
             Session.AlwaysLoad = true;
-            Session.Load(Actual_Components, Actual_Paths);
+            Session.Load(tempFolder, Actual_Components, Actual_Paths);
             Session.AlwaysLoad = false;
 
             Assert.That(Actual_Components["default"], Is.EquivalentTo(Expected_Components_A), "Assembly keys");
