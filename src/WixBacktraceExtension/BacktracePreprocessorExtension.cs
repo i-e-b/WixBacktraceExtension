@@ -55,10 +55,25 @@
         {
             if (prefix != "publish" || name != "tempDirectory") return null; // making temp directories is all we do here.
 
-            var target = Path.Combine(Session.TempFolder(), "publishoutput");
+            var outputDirectory = GetOutputDirectory();
+            var target = Path.Combine(outputDirectory, "publishoutput");
+
             Directory.CreateDirectory(target);
 
             return target;
+        }
+
+        /// <summary>
+        /// Gets the specified OutDir
+        /// </summary>
+        /// <returns>
+        ///     <see cref="string"/>
+        /// </returns>
+        protected string GetOutputDirectory()
+        {
+            var outputDirectory = Core.GetVariableValue(null, "OutDir", true);
+
+            return outputDirectory;
         }
 
         /// <summary>
@@ -100,26 +115,27 @@
         bool ComponentActions(string pragma, QuotedArgsSplitter cleanArgs, XmlWriter writer)
         {
             var setKey = cleanArgs.WithDefault("dependencySet", "default");
-
+            var targetPath = GetOutputDirectory();
+ 
             switch (pragma)
             {
                 case "allDependenciesOf":
-                    return PreprocessorActions.BuildComponents(ComponentsGenerated(setKey), cleanArgs, writer, PathsInstalledTo(setKey), copyDuplicateDependencies: true, includeTarget: false);
+                    return PreprocessorActions.BuildComponents(targetPath, ComponentsGenerated(setKey), cleanArgs, writer, PathsInstalledTo(setKey), copyDuplicateDependencies: true, includeTarget: false);
 
                 case "uniqueDependenciesOf":
-                    return PreprocessorActions.BuildComponents(ComponentsGenerated(setKey), cleanArgs, writer, PathsInstalledTo(setKey), copyDuplicateDependencies: false, includeTarget: false);
+                    return PreprocessorActions.BuildComponents(targetPath, ComponentsGenerated(setKey), cleanArgs, writer, PathsInstalledTo(setKey), copyDuplicateDependencies: false, includeTarget: false);
 
                 case "targetAndAllDependenciesOf":
-                    return PreprocessorActions.BuildComponents(ComponentsGenerated(setKey), cleanArgs, writer, PathsInstalledTo(setKey), copyDuplicateDependencies: true, includeTarget: true);
+                    return PreprocessorActions.BuildComponents(targetPath, ComponentsGenerated(setKey), cleanArgs, writer, PathsInstalledTo(setKey), copyDuplicateDependencies: true, includeTarget: true);
 
                 case "targetAndUniqueDependenciesOf":
-                    return PreprocessorActions.BuildComponents(ComponentsGenerated(setKey), cleanArgs, writer, PathsInstalledTo(setKey), copyDuplicateDependencies: false, includeTarget: true);
+                    return PreprocessorActions.BuildComponents(targetPath, ComponentsGenerated(setKey), cleanArgs, writer, PathsInstalledTo(setKey), copyDuplicateDependencies: false, includeTarget: true);
 
                 case "transformedConfigOf":
                     return PreprocessorActions.TransformConfiguration(cleanArgs, writer);
 
                 case "publishedWebsiteIn":
-                    return PreprocessorActions.BuildPublishedWebsiteComponents(cleanArgs, writer, PathsInstalledTo(setKey), ComponentsGenerated(setKey));
+                    return PreprocessorActions.BuildPublishedWebsiteComponents(targetPath, cleanArgs, writer, PathsInstalledTo(setKey), ComponentsGenerated(setKey));
 
                 default:
                     return false;
@@ -155,7 +171,9 @@
         /// </summary>
         public override void InitializePreprocess()
         {
-            Session.Load(_componentSets, _installedPathsSets);
+            var outputDirectory = GetOutputDirectory();
+
+            Session.Load(outputDirectory, _componentSets, _installedPathsSets);
             base.InitializePreprocess();
         }
 
@@ -164,7 +182,9 @@
         /// </summary>
         public override void FinalizePreprocess()
         {
-            Session.Save(_componentSets, _installedPathsSets);
+            var outputDirectory = GetOutputDirectory();
+
+            Session.Save(outputDirectory, _componentSets, _installedPathsSets);
             base.FinalizePreprocess();
         }
     }

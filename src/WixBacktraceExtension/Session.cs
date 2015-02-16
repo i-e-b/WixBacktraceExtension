@@ -1,43 +1,34 @@
-﻿namespace WixBacktraceExtension
-{
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using System.Xml.Serialization;
-    using global::WixBacktraceExtension.Backtrace;
-    using global::WixBacktraceExtension.Extensions;
-    using Newtonsoft.Json;
+﻿using global::WixBacktraceExtension.Backtrace;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
+namespace WixBacktraceExtension
+{
     /// <summary>
     /// Saves and restores Wix processing sessions
     /// </summary>
     /// <remarks>
-    /// Wix `candle.exe` calls into this plugin, and is call one for every source file. This
+    /// Wix `candle.exe` calls into <c>this</c> plug in, and is call one for every source file. This
     /// means we can't do our unique item tracing between source files easily. To remedy,
     /// we save our data across sessions with a short timeout
     /// </remarks>
     public static class Session
     {
         /// <summary>
-        /// Give a temp directory for this project
-        /// </summary>
-        public static string TempFolder()
-        {
-            var working = Directory.GetCurrentDirectory(); // Wix puts the working directory to the .wixproj location
-            var key = working.CRC32();
-            var name = working.LastPathElement().LimitRight(15);
-            return Path.Combine(Path.GetTempPath(), "Backtrace_" + name + "_" + key.ToString("X"));
-        }
-
-        /// <summary>
         /// Save state to file
         /// </summary>
-        public static void Save(Dictionary<string, HashSet<AssemblyKey>> componentsGenerated, Dictionary<string, HashSet<string>> pathsInstalledTo)
+        public static void Save(string targetPath, Dictionary<string, HashSet<AssemblyKey>> componentsGenerated, Dictionary<string, HashSet<string>> pathsInstalledTo)
         {
-            if (!Directory.Exists(TempFolder())) Directory.CreateDirectory(TempFolder());
+            if (!Directory.Exists(targetPath))
+            {
+                Directory.CreateDirectory(targetPath);
+            }
 
-            var sessionFile = Path.Combine(TempFolder(), "session.txt");
+            var sessionFile = Path.Combine(targetPath, "session.txt");
+
             var data = new SessionData
                 {
                     WriteTime = DateTime.UtcNow,
@@ -49,38 +40,47 @@
         }
 
         /// <summary>
-        /// For testing. Set to true to load session even if it's stale.
+        /// For testing. Set to <c>true</c> to load session even if it's stale.
         /// </summary>
         public static bool AlwaysLoad = false;
 
         /// <summary>
         /// Load state from file
         /// </summary>
-        public static void Load(Dictionary<string, HashSet<AssemblyKey>> componentsGenerated, Dictionary<string, HashSet<string>> pathsInstalledTo)
+        public static void Load(string targetPath, Dictionary<string, HashSet<AssemblyKey>> componentsGenerated, Dictionary<string, HashSet<string>> pathsInstalledTo)
         {
-            if (!Directory.Exists(TempFolder())) return;
-            var sessionFile = Path.Combine(TempFolder(), "session.txt");
+            if (!Directory.Exists(targetPath))
+            {
+                return;
+            }
+
+            var sessionFile = Path.Combine(targetPath, "session.txt");
+
             if (!File.Exists(sessionFile)) return;
 
             var data = JsonConvert.DeserializeObject<SessionData>(File.ReadAllText(sessionFile));
 
-            if (!AlwaysLoad &&
-                   (NoBuildOutputs() || SessionIsTooOld(data))
-               )
+            if (!AlwaysLoad && (NoBuildOutputs() || SessionIsTooOld(data)))
             {
-                // First session, start again.
-                DeleteDirectory(TempFolder());
-                if (!Directory.Exists(TempFolder())) Directory.CreateDirectory(TempFolder());
+                DeleteDirectory(targetPath);
+
+                if (!Directory.Exists(targetPath))
+                {
+                    Directory.CreateDirectory(targetPath);
+                }
+
                 return;
             }
 
             componentsGenerated.Clear();
+
             foreach (var kvp in data.Components)
             {
                 componentsGenerated.Add(kvp.Key, kvp.Value);
             }
 
             pathsInstalledTo.Clear();
+
             foreach (var kvp in data.Paths)
             {
                 pathsInstalledTo.Add(kvp.Key, kvp.Value);
@@ -108,11 +108,10 @@
 
             return !Directory.GetFiles(dirs.First().FullName, "*.wixobj", SearchOption.AllDirectories).Any();
         }
-
-
+        
         /// <summary>
         /// A strong recursive directory delete.
-        /// Directory.Delete("...", true) has quite a few bugs.
+        /// <see cref="Directory"/>.Delete("...", true) has quite a few bugs.
         /// </summary>
         /// <param name="target">Directory to delete</param>
         static void DeleteDirectory(string target)
@@ -141,14 +140,16 @@
         public class SessionData
         {
             /// <summary>
-            /// File time
+            /// <see cref="File"/> time
             /// </summary>
             public DateTime WriteTime { get; set; }
+
             /// <summary>
             /// Written components
             /// </summary>
             public Dictionary<string, HashSet<AssemblyKey>> Components { get; set; }
-            /// <summary>
+
+            /// <summary> 
             /// Written paths
             /// </summary>
             public Dictionary<string, HashSet<string>> Paths { get; set; }
